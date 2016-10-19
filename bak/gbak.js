@@ -5300,6 +5300,8 @@ try {
             return -1 == a.indexOf(".") ? a : a.replace(/\.$/, "")
         },
         s_aFc = "\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079".split("");
+
+// ======================================================================
     var s_xX = function(a, b, c) {
             this.getColor = s_d(s__Ec, c.length);
             this.nb = s_i(a);
@@ -5783,6 +5785,7 @@ try {
             a.appendChild(b);
             return b
         },
+        // 画坐标path
         s_rFc = function(a) {
             var b =
                 s_CX("path", {
@@ -5907,6 +5910,8 @@ try {
             b.appendChild(c);
             this.Ub = c;
             this.Cd = [];
+
+            // 画曲线
             for (b = 0; b < this.Ja; ++b) {
                 c = this.Cd;
                 a = b;
@@ -5920,9 +5925,11 @@ try {
                 d.hasChildNodes() ? d.insertBefore(e, d.childNodes[0]) : d.appendChild(e);
                 c[a] = e
             }
+
             this.Wa = 0;
             b = this.Ub;
             c = this.getColor(0);
+            // 画圆点
             c = s_CX("circle", {
                 r: 3.5,
                 fill: c
@@ -5936,6 +5943,8 @@ try {
             });
             b.appendChild(c);
             b = this.qa = c;
+
+            // 画x/y 提示
             c = s_CX("rect", {
                 width: 90,
                 height: 24,
@@ -5959,6 +5968,7 @@ try {
             b.appendChild(c);
             b = this.qa;
             c = this.Ia;
+            // 画text文本
             a = s_vX(b, null, 80, this.CQ + ": ", void 0);
             a.setAttribute("x", s_rX() - 180 + 5 - (c ? 24 : 0));
             a.setAttribute("y", 16);
@@ -5973,6 +5983,8 @@ try {
             this.Vc = a;
             this.xc = 0;
             b = this.Ea;
+
+            // 画矩形区域
             c = s_CX("rect", {
                 width: s_rX(),
                 height: s_sX(),
@@ -5985,6 +5997,8 @@ try {
             this.Xa = s_CX("g");
             this.Ea.appendChild(this.Xa);
             b = this.Xa;
+
+            // 左上角图片
             c = s_CX("image", {
                 width: 22,
                 height: 55,
@@ -6198,6 +6212,8 @@ try {
         this.Cc.setAttribute("height", .5);
         var e = s_uX(a, !1),
             f = [];
+
+        // path 坐标 重点==============================
         for (d = 0; d < e.length; ++d) f.push(["M", e[d], c - 2.5, " L ", e[d], c + 2.5].join(" "));
         this.RQ.setAttribute("d", f.join(" "));
         e = s_uX(a, !0);
