@@ -1,46 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Examples</title>
-    <meta name="description" content="">
-    <meta name="keywords" content="">
-    <style type="text/css">
-    #example {
-        width: 500px;
-        margin: 40px auto;
-    }
-</style>
-    <script type="text/javascript" src="vue.js"></script>
-</head>
-<body>
-    <div id="example">
-        <svg width="500" height="250" style="-webkit-user-select: none; overflow: hidden; box-shadow: 0 0 1px 1px #ccc" @click="dbclick" @mousedown="mousedown" @mousemove="mousemove" @mouseup="mouseup" @mousewheel="mousewheel">
-            <g font-size="11" :transform="transform">
-                <path :stroke="shortScaleColor" stroke-width="1" :d="xshortpath" fill="none"></path>
-                <path :stroke="scaleColor" stroke-width="1" :d="xpath" fill="none"></path>
-                <rect :stroke="axisColor" stroke-width="0.5" x="0" :y="yorigin" width="1500" height="0.5"></rect>
-                <g v-html="xtext" :fill="textColor"></g>
-            </g>
-            <g font-size="11" :transform="transform">
-                <path :stroke="shortScaleColor" stroke-width="1" :d="yshortpath" fill="none"></path>
-                <path :stroke="scaleColor" stroke-width="1" :d="ypath" fill="none"></path>
-                <rect :stroke="axisColor" stroke-width="0.5" :x="xorigin" y="0" width="0.5" height="500"></rect>
-                <g v-html="ytext" :fill="textColor"></g>
-            </g>
-            <g :transform="transform">
-                <path :stroke="lineColor" :stroke-width="lineWidth" :d="fpath" fill="none"></path>
-            </g>
-        </svg>
-    </div>
-    <script type="text/javascript">
+/**
+ *
+ * @authors Benjamin (zuojj.com@gmail.com)
+ * @date    2016-10-19 10:52:44
+ * @version $Id$
+ */
+(function(window, Vue) {
     var axis = {
         width: 500,
         height: 250,
-        xmin: -10,
-        xmax: 10,
+        xmin: -8,
+        xmax: 12,
         xpoints: 150,
         ymin: -2,
         ymax: 2,
@@ -55,6 +24,8 @@
         scaleColor: '#bbb',
         shortScaleWidth: 3,
         shortScaleColor: '#ddd',
+        translateX: 0,
+        translateY: 0
     }
 
     var res = plot_xaxis();
@@ -77,7 +48,11 @@
             scaleColor: axis.scaleColor,
             shortScaleColor: axis.shortScaleColor,
             lineWidth: axis.lineWidth,
-            transform: 'translate(0, 0)'
+            transform: 'translate(0, 0)',
+/*            axis_x_x: axis_x_x,
+            axis_x_y: axis_x_y,
+            axis_y_x: axis_y_x,
+            axis_y_y: axis_y_y*/
         },
         methods: {
             dbclick: function(event) {
@@ -93,6 +68,7 @@
                 axis.isDown = true;
             },
             mousemove: function(event) {
+                console.log(axis.isDown);
                 if(axis.isDown) {
                     var translateX = axis.translateX = event.clientX - axis.clientX,
                         translateY = axis.translateY = event.clientY - axis.clientY;
@@ -102,22 +78,59 @@
                     // 小圆球逻辑
                 }
             },
+            mouseout: function() {
+                var me = this;
+                axis.isDown = false;
+
+                var x = parseInt(+Math.abs(axis.translateX / axis.xunitlen).toFixed(2)),
+                    y = parseInt(+Math.abs(axis.translateY / axis.yunitlen).toFixed(2));
+
+                if(axis.translateX > 0) {
+                    axis.xmin -= x;
+                    axis.xmax -= x;
+                }else {
+                    axis.xmin += x;
+                    axis.xmax += x;
+                }
+
+                if(axis.translateY > 0) {
+                    axis.ymin -= y;
+                    axis.ymax -= y;
+                }else {
+                    axis.ymin += y;
+                    axis.ymax += y;
+                }
+
+                // 重新绘制
+                res = plot_xaxis();
+                ['fpath', 'xpath', 'xshortpath', 'xtext', 'ypath', 'yshortpath', 'ytext', 'xorigin', 'yorigin'].forEach(function(item){
+                    me[item] = res[item];
+                });
+            },
             mouseup: function() {
                 var me = this;
                 axis.isDown = false;
 
+                var x = parseInt(+Math.abs(axis.translateX / axis.xunitlen).toFixed(2)),
+                    y = parseInt(+Math.abs(axis.translateY / axis.yunitlen).toFixed(2));
+
                 if(axis.translateX > 0) {
-                    axis.xmin -= +Math.abs(axis.translateX / axis.xunitlen).toFixed(2);
+                    axis.xmin -= x;
+                    axis.xmax -= x;
                 }else {
-                    axis.xmax += +Math.abs(axis.translateX / axis.xunitlen).toFixed(2);
+                    axis.xmin += x;
+                    axis.xmax += x;
                 }
 
                 if(axis.translateY > 0) {
-                    axis.ymin -= +Math.abs(axis.translateY / axis.xunitlen).toFixed(2);
+                    axis.ymin -= y;
+                    axis.ymax -= y;
                 }else {
-                    axis.ymax += +Math.abs(axis.translateY / axis.xunitlen).toFixed(2);
+                    axis.ymin += y;
+                    axis.ymax += y;
                 }
-                console.log(axis);
+
+                // 重新绘制
                 res = plot_xaxis();
                 ['fpath', 'xpath', 'xshortpath', 'xtext', 'ypath', 'yshortpath', 'ytext', 'xorigin', 'yorigin'].forEach(function(item){
                     me[item] = res[item];
@@ -148,15 +161,25 @@
             xmax = axis.xmax,
             ymin = axis.ymin,
             ymax = axis.ymax,
+
             xpoints = axis.xpoints,
 
             // svg
             width = axis.width,
             height = axis.height,
 
+            axisWidth = 3 * width,
+            axisHeight = 3 * height,
+
             // 单位长度
             xunitlen = axis.xunitlen = width / (xmax - xmin),
             yunitlen = axis.yunitlen = height/ (ymax - ymin),
+
+            x_min = xmin - width/xunitlen,
+            x_max = xmax + width/xunitlen,
+
+            y_min = ymin - height/yunitlen,
+            y_max = ymax + height/yunitlen,
 
             // 原点
             xorigin = Math.abs(xmin) * xunitlen,
@@ -179,7 +202,7 @@
             },
 
             // distance
-            xscale  = xunitlen * 2,
+            xscale  = xunitlen,
             xshortscale = xunitlen / 5,
             yscale      = yunitlen,
             yshortscale = yunitlen / 5,
@@ -193,8 +216,11 @@
             yShortPath = [],
             yText = [];
 
+        xorigin = xorigin - axis.translateX;
+        yorigin = yorigin - axis.translateY;
+
         // dot 集合
-        for(var t = xmin; t <= xmax; t += inch) {
+        for(var t = x_min; t <= x_max; t += inch) {
             dots.push([t, Math.sin(t)]);
         }
 
@@ -204,22 +230,22 @@
         }
 
         // 绘制 X 轴
-        for(var x = 0, text = xmin; x <= width; x += xscale, text += 2) {
+        for(var x = -500, text = x_min; x <= 1000; x += xscale, text += 1) {
             xPath.push( _formatPath(x, yorigin - scaleWidth / 2, x, (yorigin - scaleWidth / 2 + scaleWidth).toFixed(2)) );
             text !== 0 && xText.push(_formatText(x - (text < 0 ? 8 : text > 10 ? 6 : 3), (yorigin + 15), text));
         }
 
-        for(var x = 0; x <= width; x += xshortscale) {
+        for(var x = -500; x <= 1000; x += xshortscale) {
             xShortPath.push( _formatPath(x, yorigin - shortScaleWidth / 2, x, (yorigin - shortScaleWidth / 2 + shortScaleWidth).toFixed(2)) )
         }
 
         // 绘制 Y 轴
-        for(var y = height, text = ymin; y >= 0; y -= yscale, text += 1) {
+        for(var y = 500, text = y_min; y >= -250; y -= yscale, text += 1) {
             yPath.push(_formatPath(xorigin - scaleWidth / 2, y, xorigin - scaleWidth / 2 + scaleWidth, y));
             text !== 0 && yText.push(_formatText(xorigin - 5 / 2 - 10, y + 6, text));
         }
 
-        for(var y = height; y >= 0; y -= yshortscale) {
+        for(var y = 500; y >= -250; y -= yshortscale) {
             yShortPath.push( _formatPath(xorigin - shortScaleWidth / 2, y, (xorigin - shortScaleWidth / 2 + shortScaleWidth).toFixed(2), y) )
         }
 
@@ -235,6 +261,4 @@
             xorigin: xorigin
         }
     }
-</script>
-</body>
-</html>
+})(window, Vue);

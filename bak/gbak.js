@@ -5150,7 +5150,8 @@ try {
             return s_Na(s_5Ec(a, b), s_c(c, a.ka))
         },
         s_5Ec = function(a, b) {
-            for (var c = [], d = b ? a.$.ma : a.$.Pi, e = b ? a.$.Wa : 1, f = b ? a.$.qa - a.$.$ * d : a.$.getTick(0).getValue() - a.$.Xh * d, g = b ? a.$.Ea - a.$.$ * e : a.$.getTick(0).$ - a.$.Xh, k = b ? a.$.$ : a.$.Xh, l = 0; l < 3 * k; ++l) 0 == g + l * e ? c.push(0) : c.push(f + l * d);
+            for (var c = [], d = b ? a.$.ma : a.$.Pi, e = b ? a.$.Wa : 1, f = b ? a.$.qa - a.$.$ * d : a.$.getTick(0).getValue() - a.$.Xh * d, g = b ? a.$.Ea - a.$.$ * e : a.$.getTick(0).$ - a.$.Xh, k = b ? a.$.$ : a.$.Xh, l = 0; l < 3 * k; ++l)
+                0 == g + l * e ? c.push(0) : c.push(f + l * d);
             return c
         },
         s_6Ec = function(a, b) {
@@ -6206,6 +6207,8 @@ try {
         var c = s_4Ec(a),
             c = Math.max(Math.min(s_sX(), c), 0),
             d;
+
+        // s_rX() == 500
         this.Cc.setAttribute("x", -s_rX());
         this.Cc.setAttribute("y", c);
         this.Cc.setAttribute("width", 3 * s_rX());

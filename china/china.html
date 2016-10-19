@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Examples</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <style type="text/css">
+    #example {
+        width: 454px;
+        height: 215px;
+        margin: 40px auto;
+    }
+    </style>
+    <script type="text/javascript" src="../vue.js"></script>
+<body>
+<div id="example" @mouse>
+    <div>
+        <svg width="454" height="215" xmlns:xlink="http://www.w3.org/1999/xlink" @mousemove="mousemove" @mouseout="mouseout">
+            <g fill="#999" v-html="xlabel"></g>
+            <g fill="#999" v-html="ylabel">
+            </g>
+            <g>
+                <path v-for="line in lines" :stroke-width="line.width" :stroke="line.color" :d="line.d" :opacity="line.opacity" fill="none"></path>
+            </g>
+            <g>
+                <line x1="256.7358490566038" y1="0" x2="256.7358490566038" y2="188"  line-anchor="middle" stroke="#f00" stroke-width="1" stroke-dasharray="1,1"></line>
+
+                <circle v-for="circle in circles" :r="circle.r" :transform="'translate(' + circle.x +','+ circle.y +')'" :fill="circle.color"></circle>
+            </g>
+        </svg>
+    </div>
+</div>
+    <script type="text/javascript" src="china.js"></script>
+</body>
+</html>
