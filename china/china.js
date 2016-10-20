@@ -1,80 +1,195 @@
 (function(window, Vue) {
-    var d = '{\x22v\x22:[[6.6707E8,6.6033E8,6.6577E8,6.82335E8,6.98355E8,7.15185E8,7.354E8,7.5455E8,7.7451E8,7.96025E8,8.18315E8,8.41105E8,8.6203E8,8.8194E8,9.0035E8,9.16395E8,9.30685E8,9.43455E8,9.56165E8,9.69005E8,9.81235E8,9.93885E8,1.00863E9,1.02331E9,1.036825E9,1.05104E9,1.06679E9,1.084035E9,1.10163E9,1.11865E9,1.135185E9,1.15078E9,1.16497E9,1.17844E9,1.191835E9,1.204855E9,1.21755E9,1.230075E9,1.241935E9,1.252735E9,1.262645E9,1.27185E9,1.2804E9,1.2884E9,1.296075E9,1.30372E9,1.31102E9,1.317885E9,1.324655E9,1.33126E9,1.337705E9,1.34413E9,1.350695E9,1.35738E9],[4.49595489E8,4.58626687E8,4.67962144E8,4.77615992E8,4.87607406E8,4.97952332E8,5.08656247E8,5.19722246E8,5.31160986E8,5.42983934E8,5.55199768E8,5.67805061E8,5.80798773E8,5.94192969E8,6.08002572E8,6.22232355E8,6.36883717E8,6.51935141E8,6.67339022E8,6.83032539E8,6.98965575E8,7.15105168E8,7.31443752E8,7.47986284E8,7.64749394E8,7.81736502E8,7.98941802E8,8.16328792E8,8.3383351E8,8.51374699E8,8.688907E8,8.86348712E8,9.03749636E8,9.21107534E8,9.3845255E8,9.55804355E8,9.73147577E8,9.90460131E8,1.007746556E9,1.025014711E9,1.042261758E9,1.059500888E9,1.076705723E9,1.093786762E9,1.110626108E9,1.127143548E9,1.14328935E9,1.15909525E9,1.174662334E9,1.190138069E9,1.205624648E9,1.221156319E9,1.236686732E9,1.252139596E9],[1.80671158E8,1.83691481E8,1.86537737E8,1.89241798E8,1.91888791E8,1.94302963E8,1.96560338E8,1.98712056E8,2.00706052E8,2.02676946E8,2.05052174E8,2.07660677E8,2.09896021E8,2.11908788E8,2.13853928E8,2.15973199E8,2.18035164E8,2.20239425E8,2.22584545E8,2.25055487E8,2.2654225E8,2.29465744E8,2.31664432E8,2.33792014E8,2.35824908E8,2.37923734E8,2.40132831E8,2.42288936E8,2.44499004E8,2.46819222E8,2.49622814E8,2.52980941E8,2.56514224E8,2.59918588E8,2.63125821E8,2.66278393E8,2.69394284E8,2.72646925E8,2.75854104E8,2.79040168E8,2.82162411E8,2.84968955E8,2.87625193E8,2.90107933E8,2.92805298E8,2.95516599E8,2.98379912E8,3.01231207E8,3.04093966E8,3.06771529E8,3.09349689E8,3.11721632E8,3.14112078E8,3.16497531E8]],\x22fv\x22:[[\x226.671 亿\x22,\x226.603 亿\x22,\x226.658 亿\x22,\x226.823 亿\x22,\x226.984 亿\x22,\x227.152 亿\x22,\x227.354 亿\x22,\x227.546 亿\x22,\x227.745 亿\x22,\x227.96 亿\x22,\x228.183 亿\x22,\x228.411 亿\x22,\x228.62 亿\x22,\x228.819 亿\x22,\x229.004 亿\x22,\x229.164 亿\x22,\x229.307 亿\x22,\x229.435 亿\x22,\x229.562 亿\x22,\x229.69 亿\x22,\x229.812 亿\x22,\x229.939 亿\x22,\x2210.09 亿\x22,\x2210.23 亿\x22,\x2210.37 亿\x22,\x2210.51 亿\x22,\x2210.67 亿\x22,\x2210.84 亿\x22,\x2211.02 亿\x22,\x2211.19 亿\x22,\x2211.35 亿\x22,\x2211.51 亿\x22,\x2211.65 亿\x22,\x2211.78 亿\x22,\x2211.92 亿\x22,\x2212.05 亿\x22,\x2212.18 亿\x22,\x2212.3 亿\x22,\x2212.42 亿\x22,\x2212.53 亿\x22,\x2212.63 亿\x22,\x2212.72 亿\x22,\x2212.8 亿\x22,\x2212.88 亿\x22,\x2212.96 亿\x22,\x2213.04 亿\x22,\x2213.11 亿\x22,\x2213.18 亿\x22,\x2213.25 亿\x22,\x2213.31 亿\x22,\x2213.38 亿\x22,\x2213.44 亿\x22,\x2213.51 亿\x22,\x2213.57 亿\x22],[\x224.496 亿\x22,\x224.586 亿\x22,\x224.68 亿\x22,\x224.776 亿\x22,\x224.876 亿\x22,\x224.98 亿\x22,\x225.087 亿\x22,\x225.197 亿\x22,\x225.312 亿\x22,\x225.43 亿\x22,\x225.552 亿\x22,\x225.678 亿\x22,\x225.808 亿\x22,\x225.942 亿\x22,\x226.08 亿\x22,\x226.222 亿\x22,\x226.369 亿\x22,\x226.519 亿\x22,\x226.673 亿\x22,\x226.83 亿\x22,\x226.99 亿\x22,\x227.151 亿\x22,\x227.314 亿\x22,\x227.48 亿\x22,\x227.647 亿\x22,\x227.817 亿\x22,\x227.989 亿\x22,\x228.163 亿\x22,\x228.338 亿\x22,\x228.514 亿\x22,\x228.689 亿\x22,\x228.863 亿\x22,\x229.037 亿\x22,\x229.211 亿\x22,\x229.385 亿\x22,\x229.558 亿\x22,\x229.731 亿\x22,\x229.905 亿\x22,\x2210.08 亿\x22,\x2210.25 亿\x22,\x2210.42 亿\x22,\x2210.6 亿\x22,\x2210.77 亿\x22,\x2210.94 亿\x22,\x2211.11 亿\x22,\x2211.27 亿\x22,\x2211.43 亿\x22,\x2211.59 亿\x22,\x2211.75 亿\x22,\x2211.9 亿\x22,\x2212.06 亿\x22,\x2212.21 亿\x22,\x2212.37 亿\x22,\x2212.52 亿\x22],[\x221.807 亿\x22,\x221.837 亿\x22,\x221.865 亿\x22,\x221.892 亿\x22,\x221.919 亿\x22,\x221.943 亿\x22,\x221.966 亿\x22,\x221.987 亿\x22,\x222.007 亿\x22,\x222.027 亿\x22,\x222.051 亿\x22,\x222.077 亿\x22,\x222.099 亿\x22,\x222.119 亿\x22,\x222.139 亿\x22,\x222.16 亿\x22,\x222.18 亿\x22,\x222.202 亿\x22,\x222.226 亿\x22,\x222.251 亿\x22,\x222.265 亿\x22,\x222.295 亿\x22,\x222.317 亿\x22,\x222.338 亿\x22,\x222.358 亿\x22,\x222.379 亿\x22,\x222.401 亿\x22,\x222.423 亿\x22,\x222.445 亿\x22,\x222.468 亿\x22,\x222.496 亿\x22,\x222.53 亿\x22,\x222.565 亿\x22,\x222.599 亿\x22,\x222.631 亿\x22,\x222.663 亿\x22,\x222.694 亿\x22,\x222.726 亿\x22,\x222.759 亿\x22,\x222.79 亿\x22,\x222.822 亿\x22,\x222.85 亿\x22,\x222.876 亿\x22,\x222.901 亿\x22,\x222.928 亿\x22,\x222.955 亿\x22,\x222.984 亿\x22,\x223.012 亿\x22,\x223.041 亿\x22,\x223.068 亿\x22,\x223.093 亿\x22,\x223.117 亿\x22,\x223.141 亿\x22,\x223.165 亿\x22]],\x22t\x22:[\x221960\x22,\x221961\x22,\x221962\x22,\x221963\x22,\x221964\x22,\x221965\x22,\x221966\x22,\x221967\x22,\x221968\x22,\x221969\x22,\x221970\x22,\x221971\x22,\x221972\x22,\x221973\x22,\x221974\x22,\x221975\x22,\x221976\x22,\x221977\x22,\x221978\x22,\x221979\x22,\x221980\x22,\x221981\x22,\x221982\x22,\x221983\x22,\x221984\x22,\x221985\x22,\x221986\x22,\x221987\x22,\x221988\x22,\x221989\x22,\x221990\x22,\x221991\x22,\x221992\x22,\x221993\x22,\x221994\x22,\x221995\x22,\x221996\x22,\x221997\x22,\x221998\x22,\x221999\x22,\x222000\x22,\x222001\x22,\x222002\x22,\x222003\x22,\x222004\x22,\x222005\x22,\x222006\x22,\x222007\x22,\x222008\x22,\x222009\x22,\x222010\x22,\x222011\x22,\x222012\x22,\x222013\x22],\x22n\x22:[\x22中华人民共和国\x22,\x22印度\x22,\x22美国\x22],\x22ft\x22:[\x221960 年\x22,\x221961 年\x22,\x221962 年\x22,\x221963 年\x22,\x221964 年\x22,\x221965 年\x22,\x221966 年\x22,\x221967 年\x22,\x221968 年\x22,\x221969 年\x22,\x221970 年\x22,\x221971 年\x22,\x221972 年\x22,\x221973 年\x22,\x221974 年\x22,\x221975 年\x22,\x221976 年\x22,\x221977 年\x22,\x221978 年\x22,\x221979 年\x22,\x221980 年\x22,\x221981 年\x22,\x221982 年\x22,\x221983 年\x22,\x221984 年\x22,\x221985 年\x22,\x221986 年\x22,\x221987 年\x22,\x221988 年\x22,\x221989 年\x22,\x221990 年\x22,\x221991 年\x22,\x221992 年\x22,\x221993 年\x22,\x221994 年\x22,\x221995 年\x22,\x221996 年\x22,\x221997 年\x22,\x221998 年\x22,\x221999 年\x22,\x222000 年\x22,\x222001 年\x22,\x222002 年\x22,\x222003 年\x22,\x222004 年\x22,\x222005 年\x22,\x222006 年\x22,\x222007 年\x22,\x222008 年\x22,\x222009 年\x22,\x222010 年\x22,\x222011 年\x22,\x222012 年\x22,\x222013 年\x22],\x22m\x22:{\x22fi\x22:53,\x22ci\x22:[0,1,2]}}';
+    var option = {
+        title: {
+            text: '人口趋势图'
+        },
+        legend: {
+            data: ["中国","印度","美国"]
+        },
+        grid: {
+            width: 450,
+            height: 185,
+            padding: 10,
+            left: 38,
+            right: 10,
+            top: 10,
+            bottom: 30
+        },
+        xAxis: {
+            splitNumber: 5,
+            data: ["1960", "1961", "1962", "1963", "1964", "1965", "1966", "1967", "1968", "1969", "1970", "1971", "1972", "1973", "1974", "1975", "1976", "1977", "1978", "1979", "1980", "1981", "1982", "1983", "1984", "1985", "1986", "1987", "1988", "1989", "1990", "1991", "1992", "1993", "1994", "1995", "1996", "1997", "1998", "1999", "2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013"]
+        },
+        yAxis: {
+            splitNumber: 3
+        },
+        series: [{
+            "name": "中华人民共和国",
+            "lineStyle": {
+                color: '#ff6949',
+                width: 3,
+                opacity: 1
+            },
+            "data": [667070000, 660330000, 665770000, 682335000, 698355000, 715185000, 735400000, 754550000, 774510000, 796025000, 818315000, 841105000, 862030000, 881940000, 900350000, 916395000, 930685000, 943455000, 956165000, 969005000, 981235000, 993885000, 1008630000, 1023310000, 1036825000, 1051040000, 1066790000, 1084035000, 1101630000, 1118650000, 1135185000, 1150780000, 1164970000, 1178440000, 1191835000, 1204855000, 1217550000, 1230075000, 1241935000, 1252735000, 1262645000, 1271850000, 1280400000, 1288400000, 1296075000, 1303720000, 1311020000, 1317885000, 1324655000, 1331260000, 1337705000, 1344130000, 1350695000, 1357380000]
+        }, {
+            "name": "印度",
+            "lineStyle": {
+                color: '#4b9bf9',
+                width: 1,
+                opacity: 0.5
+            },
+            "data": [449595489, 458626687, 467962144, 477615992, 487607406, 497952332, 508656247, 519722246, 531160986, 542983934, 555199768, 567805061, 580798773, 594192969, 608002572, 622232355, 636883717, 651935141, 667339022, 683032539, 698965575, 715105168, 731443752, 747986284, 764749394, 781736502, 798941802, 816328792, 833833510, 851374699, 868890700, 886348712, 903749636, 921107534, 938452550, 955804355, 973147577, 990460131, 1007746556, 1025014711, 1042261758, 1059500888, 1076705723, 1093786762, 1110626108, 1127143548, 1143289350, 1159095250, 1174662334, 1190138069, 1205624648, 1221156319, 1236686732, 1252139596]
+        }, {
+            "name": "美国",
+            "lineStyle": {
+                color: '#97d48c',
+                width: 1,
+                opacity: 0.5
+            },
+            "data": [180671158, 183691481, 186537737, 189241798, 191888791, 194302963, 196560338, 198712056, 200706052, 202676946, 205052174, 207660677, 209896021, 211908788, 213853928, 215973199, 218035164, 220239425, 222584545, 225055487, 226542250, 229465744, 231664432, 233792014, 235824908, 237923734, 240132831, 242288936, 244499004, 246819222, 249622814, 252980941, 256514224, 259918588, 263125821, 266278393, 269394284, 272646925, 275854104, 279040168, 282162411, 284968955, 287625193, 290107933, 292805298, 295516599, 298379912, 301231207, 304093966, 306771529, 309349689, 311721632, 314112078, 316497531]
+        }]
+    };
 
+    var numobj = {
+        quantity: function(val) {
+            return Math.pow(10, Math.floor(Math.log(val) / Math.LN10));
+        },
+        nice: function(val, round) {
+            var exp10 = this.quantity(val);
+            var f = val / exp10; // between 1 and 10
+            var nf;
+            if (round) {
+                if (f < 1.5) { nf = 1; }
+                else if (f < 2.5) { nf = 2; }
+                else if (f < 4) { nf = 3; }
+                else if (f < 7) { nf = 5; }
+                else { nf = 10; }
+            }
+            else {
+                if (f < 1) { nf = 1; }
+                else if (f < 2) { nf = 2; }
+                else if (f < 3) { nf = 3; }
+                else if (f < 5) { nf = 5; }
+                else { nf = 10; }
+            }
+            return nf * exp10;
+        },
+        getPrecisionSafe: function(val) {
+            var str = val.toString(),
+                dotIndex = str.indexOf('.');
 
-    var data = JSON.parse(d);
-    console.log(data);
+            if (dotIndex < 0) {
+                return 0;
+            }
+            return str.length - 1 - dotIndex;
+        },
+        roundingErrorFix: function(x, precision) {
+            if (precision == null) {
+                precision = 10;
+            }
+            return +(+x).toFixed(precision);
+        },
+        nextTick: function(min, max, splitNumber) {
+            var me = this;
 
-    var left = 32 + 5 + 10,
-        right = 10,
-        top = 10,
-        bottom = 32,
-        width = 454,
-        height = 220,
-        xdata = data.t,
-        ydata = data.v,
-        line = [{
-            width: 3,
-            color: '#ff6949',
-            opacity: 1
-        },{
-            width: 1,
-            color: '#4b9bf9'
-        },{
-            width: 1,
-            color: '#97d48c'
-        }];
+            splitNumber = splitNumber || 5;
+            var extent = [min, max];
+            var span = extent[1] - extent[0];
+            if (!isFinite(span)) {
+                return;
+            }
+            // User may set axis min 0 and data are all negative
+            // FIXME If it needs to reverse ?
+            if (span < 0) {
+                span = -span;
+                extent.reverse();
+            }
 
+            // From "Nice Numbers for Graph Labels" of Graphic Gems
+            // var niceSpan = numberUtil.nice(span, false);
+            var step = me.roundingErrorFix(
+                me.nice(span / splitNumber, true),
+                Math.max(
+                    me.getPrecisionSafe(extent[0]),
+                    me.getPrecisionSafe(extent[1])
+                // extent may be [0, 1], and step should have 1 more digits.
+                // To make it safe we add 2 more digits
+                ) + 2
+            );
 
-    var xaxisRange = (function() {
-        var min = xdata[0], max = xdata[0];
-        var xlabel = [];
+            var precision = me.getPrecisionSafe(step) + 2;
 
-        xdata.forEach(function(value, ky, index) {
-            min = value < min ? value : min;
-            max = value > max ? value : max;
-        });
-        return {
-            min: min,
-            max: max
+            var min = me.roundingErrorFix(Math.ceil(extent[0] / step) * step, precision),
+                max = me.roundingErrorFix(Math.floor(extent[1] / step) * step, precision),
+                res  = [];
+
+            //res.push(min-step);
+            for(var i = min; i <= max; i += step) {
+                res.push(i);
+            }
+            //res.push(max + step);
+
+            return res;
         }
-    })();
+    };
 
-    var ylabel = (function() {
-        var min = max = ydata[0][0];
-        ydata.forEach(function(item) {
-            item.forEach(function(value) {
-                min = value < min ? value : min;
-                max = value > max ? value : max;
+    function getMinMax(arr) {
+        return [Math.min.apply(Math, arr), Math.max.apply(Math, arr)];
+    }
+
+    var series = option.series,
+        xdata = option.xAxis.data,
+        xAxisRange = getMinMax(xdata),
+        yAxisRange = (function() {
+            var result = [];
+
+            series.forEach(function(item) {
+                var d = getMinMax(item.data);
+                result.push(d[0], d[1]);
             });
-        });
 
-        min = min / 100000000;
-        max = max / 100000000;
-    })();
-
-    var ymax = Math.floor(max / 5) * 5 + (max % 5 == 0 ? 0 : 5),
+            return getMinMax(result);
+        })(),
+        xmin = xAxisRange[0],
+        xmax = xAxisRange[1],
+        ymin = yAxisRange[0] / Math.pow(10, 8),
+        ymax = yAxisRange[1]/ Math.pow(10, 8),
+        grid = option.grid,
         ymin = 0,
-        xmin = xaxisRange.min,
-        xmax = xaxisRange.max,
-        xunit = (width - left - right)/ (xmax - xmin),
-        yunit = (height - top - bottom) / (ymax - ymin);
+        ymax = 15,
+        xunit = (grid.width - grid.left - grid.right)/ (xmax - xmin),
+        yunit = (grid.height - grid.top - grid.bottom) / (ymax - ymin)/*,
+        xAxisLabel = numobj.nextTick(xmin, xmax, option.xAxis.splitNumber),
+        yAxisLabel = numobj.nextTick(ymin, ymax, option.yAxis.splitNumber)*/;
+
+    console.log(numobj.nextTick(0, 13.7, option.yAxis.splitNumber));
 
     var lines = [],
         result = {};
 
-    ydata.forEach(function(item, index) {
-        var path = [];
-        item.forEach(function(value, index) {
-            var x = xunit * (xdata[index] - xmin) + left,
-                y = height - (yunit * value / 100000000 + bottom),
-                arr = [xdata[index], value / 100000000, x, y],
-                _x = parseInt(x);
+    series.forEach(function(item, k) {
+        var path = [],
+            lineStyle = item.lineStyle;
+
+        item.data.forEach(function(value, index) {
+            var year = xdata[index],
+                num = value / Math.pow(10, 8),
+                x = xunit * (year - xmin) + grid.left,
+                y = grid.height - (yunit * num + grid.bottom),
+                _x = parseInt(x),
+                obj = {
+                    name: item.name,
+                    r: lineStyle.width + 2,
+                    color: lineStyle.color,
+                    num: num.toString().substr(0, 5),
+                    year: year,
+                    x: x,
+                    y: y
+                };
 
             if(_x in result) {
-                result[_x].push(arr)
+                result[_x].push(obj);
             }else {
-                result[_x] = [arr];
+                result[_x] = [obj];
             }
 
             path.push( x + ',' + y)
@@ -82,82 +197,105 @@
 
         lines.push({
             d: 'M' + path.join(' '),
-            color: line[index].color,
-            width: line[index].width,
-            opacity: line[index].opacity || 0.55
+            color: lineStyle.color,
+            width: lineStyle.width,
+            opacity: lineStyle.opacity || 0.5
         });
     });
 
     // xtick
+/*    var xlabel = [];
+    xAxisLabel.forEach(function(value) {
+        var x = (value - xmin) * xunit + grid.left,
+            y = grid.height - grid.bottom;
+
+        xlabel.push('<line x1="'+ x +'" y1="'+ y +'" x2="' + x +'" y2="'+ (y + 5) +'" line-anchor="middle" stroke="#f2f2f2" stroke-width="1"></line>');
+        xlabel.push('<text x="'+ x +'" y="'+ (y + 20 )+'" text-anchor="middle">'+ value +'年</text>');
+    });*/
+
     var xlabel = [];
     xdata.forEach(function(value) {
-        var x = (value - xmin) * xunit + left,
-            y = height - bottom;
+        var x = (value - xmin) * xunit + grid.left,
+            y = grid.height - grid.bottom;
         if(value % 10 == 0) {
             xlabel.push('<line x1="'+ x +'" y1="'+ y +'" x2="' + x +'" y2="'+ (y + 5) +'" line-anchor="middle" stroke="#f2f2f2" stroke-width="1"></line>');
             xlabel.push('<text x="'+ x +'" y="'+ (y + 20 )+'" text-anchor="middle">'+ value +'年</text>');
         }
     });
 
+/*    var ylabel = [];
+    yAxisLabel = [0, 5, 10, 15];
+    yAxisLabel.forEach(function(value) {
+        var x = 0,
+            x1 = grid.left - 10,
+            x2 = grid.width,
+            y = grid.height - (yunit * value + grid.bottom),
+            value = value == 0 ? 0 : (value + '亿');
+console.log(yunit);
+        ylabel.push('<line x1="'+ x1 +'" y1="'+ y +'" x2="' + x2 +'" y2="'+ y +'" line-anchor="middle" stroke="#f2f2f2" stroke-width="1"></line>');
+        ylabel.push('<text x="'+ x +'" y="'+ (y + 8) +'">'+ value +'</text>');
+    })*/
+
     var ylabel = [];
     for(var i = 0; i <= ymax / 5; i ++) {
         var x = 0,
-            x1 = left - 10,
-            x2 = width,
+            x1 = grid.left - 10,
+            x2 = grid.width,
             text = i * 5,
             text = text == 0 ? 0 : (text + '亿'),
-            y = height - (yunit * i * 5 + bottom);
+            y = grid.height - (yunit * i * 5 + grid.bottom);
 
         ylabel.push('<line x1="'+ x1 +'" y1="'+ y +'" x2="' + x2 +'" y2="'+ y +'" line-anchor="middle" stroke="#f2f2f2" stroke-width="1"></line>');
         ylabel.push('<text x="'+ x +'" y="'+ (y + 8) +'">'+ text +'</text>');
     }
 
-    var count = 0;
+    var legendData = option.legend.data,
+        keys = Object.keys(result),
+        circles = result[keys[keys.length - 1]];
+
     var vm = new Vue({
-        el: '#example',
+        el: '#sgGraph',
         data: {
             lines: lines,
             xlabel: xlabel.join(''),
             ylabel: ylabel.join(''),
-            circles: []
+            circles: result[keys[keys.length - 1]],
+            lineVisible: 'visible',
+            line_x1: 0,
+            line_y2: 0
         },
         methods: {
+            mouseover: function() {
+                var lines = this.lines;
+                for(var i = 0, len = lines.length; i < len; i++) {
+                    lines[i]['opacity'] = 1;
+                }
+                this.lines = lines;
+                this.lineVisible = 'visible';
+            },
             mousemove: function(event) {
-                count ++
-
-                if(count % 2 == 0) return;
-
                 var me = this,
                     circles = [],
-                    offsetX = event.offsetX,
-                    d = result[offsetX],
-                    translateX,
-                    translateY;
+                    offsetX = event.offsetX;
 
-                if(d) {
-                    for(var i = 0; i < line.length; i ++) {
-                        var item = line[i],
-                            arr = d[i];
-                            obj = {};
-
-                        if(arr) {
-                            obj.x = arr[2];
-                            obj.y = arr[3];
-                            obj.r = item.width + 2;
-                            obj.color = item.color;
-                            circles.push(obj);
-                            console.log(arr[0], arr[1]);
-                        }
-                    }
-                }
+                circles = result[offsetX] || '';
 
                 if(!circles.length) return;
-                me.circles = circles;
+
+                setTimeout(function() {
+                    me.line_x1 = circles[0]['x'];
+                    me.line_y2 = grid.height - grid.bottom;
+                    me.circles = circles;
+                }, 20);
             },
             mouseout: function() {
-                //this.circle = '';
+                var lines = this.lines;
+                for(var i = 0, len = lines.length; i < len; i++) {
+                    lines[i]['opacity'] = lines[i]['width'] == 3 ? 1 : 0.55;
+                }
+                this.lines = lines;
+                this.lineVisible = 'hidden';
             }
         }
     });
-
 })(window, Vue);
