@@ -233,11 +233,14 @@
         },
         methods: {
             mouseover: function() {
-                var lines = this.lines;
+                var lines = this.lines,
+                    circles = this.circles;
+
                 for(var i = 0, len = lines.length; i < len; i++) {
-                    lines[i]['opacity'] = 1;
+                    lines[i]['opacity'] = circles[i]['opacity'] = 1;
                 }
                 this.lines = lines;
+                this.circles = circles;
                 this.lineVisible = 'visible';
             },
             mousemove: function(event) {
@@ -250,14 +253,22 @@
                 if(!circles.length) return;
                 me.line_x1 = circles[0]['x'];
                 me.line_y2 = grid.height - grid.bottom;
+
+                for(var i = 0, len = circles.length; i < len; i++) {
+                    circles[i]['opacity'] = 1;
+                }
+
                 me.circles = circles;
             },
             mouseout: function() {
-                var lines = this.lines;
+                var lines = this.lines,
+                    circles = this.circles;
+
                 for(var i = 0, len = lines.length; i < len; i++) {
-                    lines[i]['opacity'] = lines[i]['width'] == 3 ? 1 : 0.55;
+                    lines[i]['opacity'] = circles[i]['opacity'] = lines[i]['width'] == 3 ? 1 : 0.55;
                 }
                 this.lines = lines;
+                this.circles = circles;
                 this.lineVisible = 'hidden';
             }
         }
