@@ -5,6 +5,7 @@
  * @version $Id$
  */
 (function(window, Vue) {
+
     var axis = {
         width: 500,
         height: 250,
@@ -70,7 +71,7 @@
             mousemove: function(event) {
                 console.log(axis.isDown);
                 if(axis.isDown) {
-                    var translateX = axis.translateX = event.clientX - axis.clientX,
+                    var translateX = axis.translateX = Math.floor((event.clientX - axis.clientX) / axis.xunitlen * Math.PI) * axis.xunitlen * Math.PI ,
                         translateY = axis.translateY = event.clientY - axis.clientY;
 
                     this.transform = 'translate('+ translateX + ',' + translateY +')';
