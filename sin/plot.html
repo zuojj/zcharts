@@ -17,8 +17,54 @@
 </head>
 <body>
     <div id="example">
-        <svg width="500" height="250" style="-webkit-user-select: none; overflow: hidden; box-shadow: 0 0 1px 1px #ccc" >
-            <g id="grid" font-size="12"></g>
+        <svg width="500" height="250" style="-webkit-user-select: none; overflow: hidden; box-shadow: 0 0 1px 1px #ccc" @click="dbclick" @mousedown="mousedown" @mousemove="mousemove" @mouseup="mouseup" @mousewheel="mousewheel" @mouseout="mouseout" :transform="scale">
+            <g>
+                <!-- X -->
+                <g font-size="11"  :transform="transform" v-html="xpath">
+                </g>
+                <!-- Y -->
+                <g font-size="11" :transform="transform"  v-html="ypath">
+                </g>
+                <!-- Curve -->
+                <g :transform="transform">
+                    <circle r="3.5" fill="#ff6949" cx="190" cy="180"></circle>
+                    <path stroke="#f00" stroke-width="1" :d="fpath" fill="none"></path>
+                </g>
+            </g>
+            <!-- Coordinate -->
+            <g font-size="13">
+                <text x="315" y="16" fill="#333">x=</text>
+                <text x="332" y="16" fill="#ff5a34">-3.8537051</text>
+                <text x="400" y="16" fill="#333">,</text>
+                <text x="408" y="16" fill="#333">y= </text>
+                <text x="425" y="16" fill="#ff5a34">0.65343438</text>
+            </g>
+            <!-- Rect -->
+            <rect width="500" height="250" x="0" y="0" fill-opacity="0"></rect>
+            <!-- Operator -->
+            <g>
+                <image width="22" height="55" x="8" y="10" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/shadow.png"></image>
+                <image width="18" height="17" x="10" y="10" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/plus.png"></image>
+                <image width="18" height="20" x="10" y="42" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/minus.png"></image>
+                <image width="12" height="18" x="27" y="26" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/tag_right.png"></image>
+                <g>
+                    <g>
+                        <image width="18" height="18" x="10" y="26" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/x_default.png"></image>
+                        <image width="18" height="18" x="10" y="26" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/x_hover.png" style="display: none;"></image>
+                        <image width="18" height="18" x="10" y="26" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/x_selected.png" style="display: none;"></image>
+                    </g>
+                    <g>
+                        <image width="18" height="18" x="10" y="26" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/y_default.png"></image>
+                        <image width="18" height="18" x="10" y="26" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/y_hover.png" style="display: none;"></image>
+                        <image width="18" height="18" x="10" y="26" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/y_selected.png" style="display: none;"></image>
+                    </g>
+                    <g>
+                        <image width="18" height="18" x="10" y="26" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/xy_default.png"></image>
+                        <image width="18" height="18" x="10" y="26" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/xy_hover.png"></image>
+                        <image width="18" height="18" x="10" y="26" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://ssl.gstatic.com/onebox/calculator/1/xy_selected.png"></image>
+                    </g>
+                </g>
+            </g>
         </svg>
     </div>
     <script type="text/javascript" src="plot.js"></script>

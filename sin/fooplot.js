@@ -252,8 +252,10 @@ function Fooplot(container, options) {
             var centery = (_self.ymax + _self.ymin) / 2;
             _self.xmax = (_self.xmax - centerx) / _self.zoomPendingFactor + centerx;
             _self.xmin = (_self.xmin - centerx) / _self.zoomPendingFactor + centerx;
+
             _self.ymax = (_self.ymax - centery) / _self.zoomPendingFactor + centery;
             _self.ymin = (_self.ymin - centery) / _self.zoomPendingFactor + centery;
+
             _self.zoomPendingFactor = 1;
             _self.reDraw();
             _self.canvas.style.OTransition = 'color 0 ease'; // opera hack
