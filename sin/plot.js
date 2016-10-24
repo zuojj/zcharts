@@ -62,12 +62,23 @@
         },
 
         getStep : function() {
-            var option = this.option;
-            [option.xAxis, option.yAxis].forEach(function(item) {
-                var full = -0.9 + Math.log(item.max - item.min) / Math.log(10),
+            var option = this.option,
+                grid   = option.grid,
+                width = grid.width,
+                naturalWidth = grid.width - grid['padding'][1] - grid['padding'][3],
+                height = grid.height,
+                naturalHeight = grid.height - grid['padding'][0] - grid['padding'][2],
+                axisWidth = 3 * naturalWidth,
+                axisHeight = 3 * naturalHeight;
+
+            [option.xAxis, option.yAxis].forEach(function(item, index) {
+                var min = item.min,
+                    max = item.max
+                    full = -0.9 + Math.log(max - min) / Math.log(10),
                     order = Math.floor(full),
                     rem = full - order,
-                    step = Math.pow(10, order);
+                    step = Math.pow(10, order),
+                    unit = _min = _max = 0;
 
                 if(rem > 0.7) {
                     step *= 5;
@@ -75,20 +86,35 @@
                     step *= 2;
                 }
 
+                min = Math.floor(min / step) * step;
+                max = Math.ceil(max / step) * step;
+
+                naturalWH = index == 0 ? naturalWidth : naturalHeight;
+                axisWH = index == 0 ? axisWidth : axisHeight;
+
+                item.unit = unit = naturalWH / (max - min);
+                _min = 0 - axisWH / unit * 1 / 3 + min;
+                _max = axisWH / unit * 2 / 3 - max;
+
+                item._min = _min = Math.floor(_min / step) * step;
+                item._max = _max = Math.ceil(_max / step) * step;
+
                 item.step = step;
             });
         },
         draw: function(translateX, translateY) {
-            this.getStep();
+            //this.getStep();
 
             var option = this.option,
                 grid = option.grid,
                 xAxis = option.xAxis,
                 yAxis = option.yAxis,
-                xmin = xAxis.min,
-                xmax = xAxis.max,
-                ymin = yAxis.min,
-                ymax = yAxis.max,
+                xmin = xAxis._min,
+                xmax = xAxis._max,
+                ymin = yAxis._min,
+                ymax = yAxis._max,
+                xunit = xAxis.unit,
+                yunit = yAxis.unit,
                 xstep = xAxis.step,
                 ystep = yAxis.step,
                 width = grid.width,
@@ -101,37 +127,11 @@
             translateX = translateX || 0;
             translateY = translateY || 0;
 
-            xmin = Math.floor(xmin / xstep) * xstep;
-            xmax = Math.ceil(xmax / xstep) * xstep;
-
-            xunit = natrualWidth / (xmax - xmin);
-            xmin = 0 - axisWidth / xunit * 1 / 3 + xmin;
-            xmax = axisWidth / xunit * 2 / 3 - xmax;
-            xmin = Math.floor(xmin / xstep) * xstep;
-            xmax = Math.ceil(xmax / xstep) * xstep;
-
-            ymin = Math.floor(ymin / ystep) * ystep;
-            ymax = Math.ceil(ymax / ystep) * ystep;
-
-            yunit = natrualHeight / (ymax - ymin);
-            ymin = 0 - axisHeight / yunit * 1 / 3 + ymin;
-            ymax = axisHeight / yunit * 2 / 3 - ymax;
-            ymin = Math.floor(ymin / ystep) * ystep;
-            ymax = Math.ceil(ymax / ystep) * ystep;
-
-
-            xAxis.unit = xunit;
-            xAxis.xmax = xmax;
-            xAxis.xmin = xmin;
-            yAxis.ymax = ymax;
-            yAxis.ymin = ymin;
-            yAxis.unit = yunit;
-
             console.log(xmin, xmax, ymin, ymax, 'xxxxxxx');
             var xpath = [];
-            xpath.push('<rect x="'+ (-natrualWidth) +'" y="'+(natrualHeight / 2 + grid['padding'][0] + translateX)+'" fill="#333" stroke-width="0.5" width="1500" height="0.5"></rect>');
+            xpath.push('<rect x="'+ (- natrualWidth ) +'" y="'+(natrualHeight / 2 + grid['padding'][0])+'" fill="#333" stroke-width="0.5" width="1500" height="0.5"></rect>');
             for(var i = xmin; i <= xmax; i += xstep) {
-                x1 = x2 = (i - xmin) / (xmax - xmin) * axisWidth + xmin * xunit * 2 / 3 + grid['padding'][3];
+                x1 = x2 = (i - xmin) / (xmax - xmin) * axisWidth - 20 * xunit + grid['padding'][3];
                 y1 = 0 + grid['padding'][0];
                 y2 = natrualHeight / 2 + grid['padding'][0];
 
@@ -142,7 +142,7 @@
             xpath = xpath.join('\n');
 
             var ypath = [];
-            ypath.push('<rect x="'+ (natrualWidth / 2 + grid['padding'][3] + translateY) +'" y="'+ (-natrualHeight) +'" fill="#333" stroke-width="0.5" width="0.5" height="750"></rect>');
+            ypath.push('<rect x="'+ (natrualWidth / 2 + grid['padding'][3] + translateX) +'" y="'+ (-natrualHeight) +'" fill="#333" stroke-width="0.5" width="0.5" height="750"></rect>');
             for(var i = ymin; i <= ymax; i += ystep) {
                 x1 = natrualWidth / 2 + grid['padding'][3];
                 x2 = x1 + 5;
@@ -157,7 +157,7 @@
             var fpath = ['M'], x, y;
 
             for(var i = xmin; i < xmax; i += 0.25) {
-                x = i * xunit + natrualWidth / 2 + grid['padding'][3];
+                x = (i - xmin) / (xmax - xmin) * axisWidth - 20 * xunit + grid['padding'][3];
                 y = natrualHeight / 2 + grid['padding'][0] - Math.sin(i) * yunit;
                 fpath.push(x + ',' + y);
             }
@@ -297,7 +297,7 @@
         }
     }
 
-
+    sgCharts.getStep();
     var res = sgCharts.draw();
 
     var vm = new Vue({
@@ -324,13 +324,18 @@
                 grid.isMouseDown = true;
             },
             mousemove: function(event) {
-                var grid = sgCharts.option.grid;
+                var grid = sgCharts.option.grid
 
                 if(grid.isMouseDown) {
+                    var
+                    _translateX = grid.translateX || 0,
+                    _translateY = grid.translateY || 0;
+                    console.log(_translateX, _translateY);
                     var translateX = grid.translateX = Math.floor((event.pageX - grid.pageX)),
                         translateY = grid.translateY = event.pageY - grid.pageY;
 
-                    this.transform = 'translate('+ translateX + ',' + translateY +')';
+
+                    this.transform = 'translate('+ (translateX) + ',' + (translateY) +')';
                 }else {
                     // 小圆球逻辑
                 }
@@ -371,40 +376,41 @@
                     yAxis = option.yAxis,
                     grid = option.grid;
 
+
                 grid.isMouseDown = false;
+
+                if(grid.translateX == 0) return;
 
                 var x = parseInt(+Math.abs(grid.translateX / xAxis.unit).toFixed(2)),
                     y = parseInt(+Math.abs(grid.translateY / yAxis.unit).toFixed(2));
 
                 console.log(x, y, grid.translateX, grid.translateY, 'translate');
 
-                console.log(xAxis.min, xAxis.max, yAxis.min, yAxis.max, 'old');
                 if(grid.translateX > 0) {
-                    xAxis.min -= x;
-                    xAxis.max -= x;
+                    xAxis._min -= x;
+                    xAxis._max -= x;
                 }else {
-                    xAxis.min += x;
-                    xAxis.max += x;
+                    xAxis._min += x;
+                    xAxis._max += x;
                 }
 
                 if(grid.translateY > 0) {
-                    yAxis.min -= y;
-                    yAxis.max -= y;
+                    yAxis._min -= y;
+                    yAxis._max -= y;
                 }else {
-                    yAxis.min += y;
-                    yAxis.max += y;
+                    yAxis._min += y;
+                    yAxis._max += y;
                 }
-                console.log(xAxis.min, xAxis.max, yAxis.min, yAxis.max, 'new');
 
+                console.log(xAxis._min, xAxis._max, yAxis._min, yAxis._max, 'new');
                 // 重新绘制
-                var res = sgCharts.draw();
-/*                ['fpath', 'xpath', 'ypath'].forEach(function(item){
+                var res = sgCharts.draw(grid.translateX, grid.translateY);
+                ['fpath', 'xpath', 'ypath'].forEach(function(item){
                     me[item] = res[item];
                 });
-*/
-                vm.fpath = res.fpath;
-                vm.xpath = res.xpath;
-                vm.ypath = res.ypath;
+                //grid.translateX = 0;
+                //grid.translateY = 0;
+                me.transform = 'translate(0,0)';
 
             },
             mousewheel: function(event) {
