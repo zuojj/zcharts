@@ -99,6 +99,14 @@
                 item._min = _min = Math.floor(_min / step) * step;
                 item._max = _max = Math.ceil(_max / step) * step;
 
+                if(index == 0) {
+                    item.originX = 0 - naturalWidth;
+                    item.originY = naturalHeight / 2 + grid['padding'][0];
+                }else {
+                    item.originX = naturalWidth / 2 + grid['padding'][3];
+                    item.originY = 0 - naturalHeight;
+                }
+
                 item.step = step;
             });
         },
@@ -129,27 +137,37 @@
 
             console.log(xmin, xmax, ymin, ymax, 'xxxxxxx');
             var xpath = [];
-            xpath.push('<rect x="'+ (- natrualWidth ) +'" y="'+(natrualHeight / 2 + grid['padding'][0])+'" fill="#333" stroke-width="0.5" width="1500" height="0.5"></rect>');
+            originY = xAxis.originY = xAxis.originY + translateY;
+            console.log(originY);
+            xpath.push('<rect x="'+ xAxis.originX +'" y="'+ originY +'" fill="#333" stroke-width="0.5" width="1500" height="0.5"></rect>');
             for(var i = xmin; i <= xmax; i += xstep) {
-                x1 = x2 = (i - xmin) / (xmax - xmin) * axisWidth - 20 * xunit + grid['padding'][3];
-                y1 = 0 + grid['padding'][0];
-                y2 = natrualHeight / 2 + grid['padding'][0];
+                x1 = x2 = (i - xmin) / (xmax - xmin) * axisWidth + grid['padding'][3] + (xmin - xmax)* xunit / 3;
+                y1 = originY;
+                y2 = originY + 5;
 
-                xpath.push('<line x1="'+x1+'" x2="'+x1+'" y1="'+ y2 +'" y2="'+ (y2 + 5)+'" stroke="#f00" stroke-width="1" width="1" height="5"></line>');
-                xpath.push('<text text-anchor="middle" x="'+ x1 +'" y="'+ (height / 2 + 16) +'">'+i+'</text>');
+                xpath.push('<line x1="'+x1+'" x2="'+x1+'" y1="'+ y1 +'" y2="'+ y2+'" stroke="#f00" stroke-width="1" width="1" height="5"></line>');
+                xpath.push('<text text-anchor="middle" x="'+ x1 +'" y="'+ (y1 + 16) +'">'+i+'</text>');
             }
 
             xpath = xpath.join('\n');
 
-            var ypath = [];
-            ypath.push('<rect x="'+ (natrualWidth / 2 + grid['padding'][3] + translateX) +'" y="'+ (-natrualHeight) +'" fill="#333" stroke-width="0.5" width="0.5" height="750"></rect>');
+            var ypath = [], x, y;
+            // 此处增加Y轴左右溢出判断, 此处不能用naturalWidth来计算， 需要缓存上一次来纠正
+            originX = yAxis.originX = yAxis.originX + translateX;
+            console.log(originX);
+            if(x <= 0) {
+                x = 0;
+            }else if(x > width) {
+                x = width;
+            }
+            ypath.push('<rect x="'+ originX +'" y="'+ (-natrualHeight) +'" fill="#333" stroke-width="0.5" width="0.5" height="750"></rect>');
             for(var i = ymin; i <= ymax; i += ystep) {
-                x1 = natrualWidth / 2 + grid['padding'][3];
+                x1 = originX;
                 x2 = x1 + 5;
-                y1 = y2 = axisHeight - (i - ymin) / (ymax - ymin) * axisHeight + grid['padding'][0] + ymin * yunit * 2 / 3;
+                y1 = y2 = axisHeight - (i - ymin) / (ymax - ymin) * axisHeight + grid['padding'][0] + (ymin - ymax) * yunit / 3;
 
                 ypath.push('<line x1="'+x1+'" x2="'+x2+'" y1="'+ y1 +'" y2="'+ y2 +'" stroke="#f00" stroke-width="1" width="1" height="5"></line>');
-                ypath.push('<text text-anchor="middle" x="'+ (x1 + 16) +'" y="'+ (y2 + 6)+'">'+i+'</text>');
+                ypath.push('<text text-anchor="middle" x="'+ (originX + 16) +'" y="'+ (y2 + 6)+'">'+i+'</text>');
             }
 
             ypath = ypath.join('\n');
@@ -157,7 +175,7 @@
             var fpath = ['M'], x, y;
 
             for(var i = xmin; i < xmax; i += 0.25) {
-                x = (i - xmin) / (xmax - xmin) * axisWidth - 20 * xunit + grid['padding'][3];
+                x = (i - xmin) / (xmax - xmin) * axisWidth + (xmin - xmax) / 3 * xunit + grid['padding'][3];
                 y = natrualHeight / 2 + grid['padding'][0] - Math.sin(i) * yunit;
                 fpath.push(x + ',' + y);
             }
