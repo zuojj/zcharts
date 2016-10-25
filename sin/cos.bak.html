@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Examples</title>
+<meta name="description" content="">
+<meta name="keywords" content="">
+<style type="text/css">
+    #example {
+        width: 500px;
+        margin: 40px auto;
+    }
+</style>
+<script type="text/javascript" src="../vue.js"></script>
+</head>
+<body>
+<div id="example">
+    <svg width="500" height="250" style="-webkit-user-select: none; overflow: hidden; box-shadow: 0 0 1px 1px #ccc" @mousedown="mousedown" @mousemove="mousemove" @mouseup="mouseup" @mousewheel="mousewheel" @mouseout="mouseout" @mouseover="mouseover" :transform="scale">
+        <g id="xaxis" :transform="transform" font-size="11"></g>
+        <g v-for="axis in axises">
+            <rect></rect>
+            <path></path>
+            <g v-for="t in axis.texts">
+
+            </g>
+        </g>
+        <g id="yaxis" :transform="transform" font-size="12"></g>
+        <path stroke="#f00" stroke-width="1" id="path" fill="none" :transform="transform"></path>
+    </svg>
+
+    <svg width="500" height="250" style="-webkit-user-select: none; overflow: hidden; box-shadow: 0 0 1px 1px #ccc" @mousedown="mousedown" @mousemove="mousemove" @mouseup="mouseup" @mousewheel="mousewheel" @mouseout="mouseout" @mouseover="mouseover" :transform="scale">
+        <g v-for="axis in axises">
+            <rect :x="axis.rect.x" :y="axis.rect.y" :width="axis.rect.w" :height="axis.rect.h" :fill="axis.rect.c"></rect>
+            <path :stroke-width="axis.scale.b" :stroke="axis.scale.c" :d="axis.scale.d"></path>
+            <g>
+                <text v-for="t in axis.texts"></text>
+            </g>
+        </g>
+        <path stroke="#f00" stroke-width="1" id="path" fill="none" :transform="transform"></path>
+    </svg>
+</div>
+<script type="text/javascript" src="cos.js"></script>
+</body>
+</html>

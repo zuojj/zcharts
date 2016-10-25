@@ -95,10 +95,10 @@
                 item.unit = unit = naturalWH / (max - min);
                 _min = 0 - axisWH / unit * 1 / 3 + min;
                 _max = axisWH / unit * 2 / 3 - max;
-
+console.log(_min, _max)
                 item._min = _min = Math.floor(_min / step) * step;
                 item._max = _max = Math.ceil(_max / step) * step;
-
+console.log(option.xAxis, option.yAxis);
                 if(index == 0) {
                     item.originX = 0 - naturalWidth;
                     item.originY = naturalHeight / 2 + grid['padding'][0];
@@ -111,8 +111,6 @@
             });
         },
         draw: function(translateX, translateY) {
-            //this.getStep();
-
             var option = this.option,
                 grid = option.grid,
                 xAxis = option.xAxis,
@@ -135,10 +133,15 @@
             translateX = translateX || 0;
             translateY = translateY || 0;
 
-            console.log(xmin, xmax, ymin, ymax, 'xxxxxxx');
             var xpath = [];
             originY = xAxis.originY = xAxis.originY + translateY;
             console.log(originY);
+            if(originY <= 0) {
+                originY = 0;
+            }else if(originY >= height) {
+                originY = height - 2;
+            }
+
             xpath.push('<rect x="'+ xAxis.originX +'" y="'+ originY +'" fill="#333" stroke-width="0.5" width="1500" height="0.5"></rect>');
             for(var i = xmin; i <= xmax; i += xstep) {
                 x1 = x2 = (i - xmin) / (xmax - xmin) * axisWidth + grid['padding'][3] + (xmin - xmax)* xunit / 3;
@@ -154,11 +157,11 @@
             var ypath = [], x, y;
             // 此处增加Y轴左右溢出判断, 此处不能用naturalWidth来计算， 需要缓存上一次来纠正
             originX = yAxis.originX = yAxis.originX + translateX;
-            console.log(originX);
-            if(x <= 0) {
-                x = 0;
-            }else if(x > width) {
-                x = width;
+            console.log('originX:', originX);
+            if(originX <= 0) {
+                originX = 0;
+            }else if(originX > width) {
+                originX = width - 2;
             }
             ypath.push('<rect x="'+ originX +'" y="'+ (-natrualHeight) +'" fill="#333" stroke-width="0.5" width="0.5" height="750"></rect>');
             for(var i = ymin; i <= ymax; i += ystep) {
@@ -172,7 +175,7 @@
 
             ypath = ypath.join('\n');
 
-            var fpath = ['M'], x, y;
+            var fpath = [], x, y;
 
             for(var i = xmin; i < xmax; i += 0.25) {
                 x = (i - xmin) / (xmax - xmin) * axisWidth + (xmin - xmax) / 3 * xunit + grid['padding'][3];
@@ -180,7 +183,7 @@
                 fpath.push(x + ',' + y);
             }
 
-            fpath = fpath.join(' ');
+            fpath = 'M' + fpath.join(' ');
 
             return {
                 fpath: fpath,
@@ -189,7 +192,7 @@
             }
         },
 
-        drawGrid: function() {
+/*        drawGrid: function() {
             var option = this.option,
                 grid   = option.grid;
 
@@ -218,7 +221,6 @@
 
                 _min = Math.floor(min / step) * step;
                 _max = Math.ceil(max / step) * step;
-                console.log(_min, _max, 'xxx');
                 item.step = step;
                 item.data = [];
                 item.html = [];
@@ -230,7 +232,6 @@
 
                 }else {
                     unit = height / (_max - _min);
-                    console.log(unit);
                     min = 0 - item.height / unit * 1 / 3 + _min;
                     max = item.height / unit * 2 / 3 - _max;
                 }
@@ -240,18 +241,16 @@
 
                 item.data = [];
                 item.html = [];
-                console.log(min, max, 'new');
 
                 if(index == 0) {
                     item.html.push('<line x1="'+ (min * unit * 2 / 3) +'" x2="'+ (item.width * 2 / 3) +'" y1="'+ (grid.height / 2 + 2)+'" y2="'+(grid.height / 2 + 2)+'" stroke="#333" stroke-width="1" width="1500" height="1"></line>');
                 }else {
                     item.html.push('<line x1="'+ (grid.width / 2 - 2) +'" x2="'+ (grid.width / 2 -2) +'" y1="'+ (min * unit * 2 / 3)+'" y2="'+(item.height * 2 / 3)+'" stroke="#333" stroke-width="1" width="1" height="750"></line>');
                 }
-                console.log(min, max, step, 'ddd');
+
                 for(i = min; i <= max; i += step){
                     if(index == 0) {
                         x1 = x2 = (i - min) / (max - min) * item.width + grid['padding'][3] + min * unit * 2 / 3;
-                        console.log(i, x1);
                         y1 = 0 + grid['padding'][0];
                         y2 = height + grid['padding'][0];
                         item.html.push('<text text-anchor="middle" x="'+ x1 +'" y="'+ (grid.height / 2 + 16) +'">'+i+'</text>');
@@ -275,7 +274,7 @@
             //document.getElementById('grid').innerHTML = html.join('\n')
 
             return res;
-        },
+        },*/
 
         drawFunction: function() {
 
@@ -295,13 +294,13 @@
                 xAxis = option.xAxis,
                 yAxis = option.yAxis;
 
-            xAxis.max /= zoom;
-            xAxis.min /= zoom;
+            xAxis._max /= zoom;
+            xAxis._min /= zoom;
 
-            yAxis.max /= zoom;
-            yAxis.min /= zoom;
+            yAxis._max /= zoom;
+            yAxis._min /= zoom;
 
-            this.scale = 'scale('+ zoom +')';
+            vm.scale = 'scale('+ zoom +')';
 
             var res = sgCharts.draw();
 
@@ -348,7 +347,6 @@
                     var
                     _translateX = grid.translateX || 0,
                     _translateY = grid.translateY || 0;
-                    console.log(_translateX, _translateY);
                     var translateX = grid.translateX = Math.floor((event.pageX - grid.pageX)),
                         translateY = grid.translateY = event.pageY - grid.pageY;
 
@@ -358,36 +356,13 @@
                     // 小圆球逻辑
                 }
             },
-            mouseout: function() {
-/*                var me = this;
-                axis.isDown = false;
+            mouseover: function() {
+                var grid = sgCharts.option.grid;
 
-                var x = parseInt(+Math.abs(axis.translateX / axis.xunitlen).toFixed(2)),
-                    y = parseInt(+Math.abs(axis.translateY / axis.yunitlen).toFixed(2));
-
-                if(axis.translateX > 0) {
-                    axis.min -= x;
-                    axis.xmax -= x;
-                }else {
-                    axis.min += x;
-                    axis.xmax += x;
-                }
-
-                if(axis.translateY > 0) {
-                    axis.ymin -= y;
-                    axis.ymax -= y;
-                }else {
-                    axis.ymin += y;
-                    axis.ymax += y;
-                }
-
-                // 重新绘制
-                res = plot_xaxis();
-                ['fpath', 'xpath', 'xshortpath', 'xtext', 'ypath', 'yshortpath', 'ytext', 'xorigin', 'yorigin'].forEach(function(item){
-                    me[item] = res[item];
-                });*/
+                grid.translateX = 0;
+                grid.translateY = 0;
             },
-            mouseup: function() {
+            mouseout: function() {
                 var me = this,
                     option = sgCharts.option,
                     xAxis = option.xAxis,
@@ -401,8 +376,6 @@
 
                 var x = parseInt(+Math.abs(grid.translateX / xAxis.unit).toFixed(2)),
                     y = parseInt(+Math.abs(grid.translateY / yAxis.unit).toFixed(2));
-
-                console.log(x, y, grid.translateX, grid.translateY, 'translate');
 
                 if(grid.translateX > 0) {
                     xAxis._min -= x;
@@ -420,7 +393,45 @@
                     yAxis._max += y;
                 }
 
-                console.log(xAxis._min, xAxis._max, yAxis._min, yAxis._max, 'new');
+                // 重新绘制
+                var res = sgCharts.draw(grid.translateX, grid.translateY);
+                ['fpath', 'xpath', 'ypath'].forEach(function(item){
+                    me[item] = res[item];
+                });
+
+                me.transform = 'translate(0,0)';
+            },
+            mouseup: function() {
+                var me = this,
+                    option = sgCharts.option,
+                    xAxis = option.xAxis,
+                    yAxis = option.yAxis,
+                    grid = option.grid;
+
+
+                grid.isMouseDown = false;
+
+                if(grid.translateX == 0) return;
+
+                var x = parseInt(+Math.abs(grid.translateX / xAxis.unit).toFixed(2)),
+                    y = parseInt(+Math.abs(grid.translateY / yAxis.unit).toFixed(2));
+
+                if(grid.translateX > 0) {
+                    xAxis._min -= x;
+                    xAxis._max -= x;
+                }else {
+                    xAxis._min += x;
+                    xAxis._max += x;
+                }
+
+                if(grid.translateY > 0) {
+                    yAxis._min -= y;
+                    yAxis._max -= y;
+                }else {
+                    yAxis._min += y;
+                    yAxis._max += y;
+                }
+
                 // 重新绘制
                 var res = sgCharts.draw(grid.translateX, grid.translateY);
                 ['fpath', 'xpath', 'ypath'].forEach(function(item){
@@ -438,6 +449,4 @@
             }
         }
     });
-
-    //console.log(sgCharts.drawAxis());
 })(window, Vue);
