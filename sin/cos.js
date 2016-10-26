@@ -2,7 +2,13 @@
  *
  * @authors Benjamin (zuojj.com@gmail.com)
  * @date    2016-10-25 10:56:53
- * @version $Id$
+ * @update
+ * 1. tanx, 1/x函数图像边界处理
+ * 2. 优化平移拖动错误，增加动画
+ * 3. 细化坐标轴处理
+ * 4. UI及code更新
+ * 5. 组件封装
+ * 6. 自动化工程
  */
 
 (function(window, Vue, Math) {
@@ -159,8 +165,6 @@
                 var items = value.split(/ +/),
                     obj = {};
 
-                serie = series[index] = series[index] || {};
-
                 items = items.map(function(item, index) {
                     item = item.toLowerCase();
 
@@ -176,11 +180,11 @@
                     }
                 }
 
-                eval('series['+ index +']["callback"]=function(x) {return ' + items.join('') + ';}');
+                eval('obj.callback=function(x) {return ' + items.join('') + ';}');
 
-                serie.lineStyle = serie.lineStyle || {};
-                serie.lineStyle.color = colors[index];
-                console.log(series[index].callback)
+                obj.lineStyle = obj.lineStyle || {};
+                obj.lineStyle.color = colors[index];
+                series.push(obj);
             });
             svgFun.gdata = me.drawAxis();
         },
@@ -222,6 +226,7 @@
 
             console.log(xAxis.min, xAxis.max, yAxis.max, yAxis.min, 'min+max');
 
+            // 处理坐标轴平移
             x = (0 - xmin) / (xmax - xmin) * width;
             if(x <= 0) {
                 x = 0;
@@ -250,6 +255,11 @@
                 var step = item.step,
                     min  = item.min,
                     max  = item.max,
+                    textFormat = function(text) {
+                        var exp10 = Math.pow(10, 2 - Math.floor(Math.log(max - min) / Math.log(10)));
+
+                        return parseFloat(Math.round(text * exp10) / exp10);
+                    },
                     texts = [],
                     grids = [],
                     scales = [],
@@ -277,7 +287,7 @@
                             c: item.textStyle.color,
                             tx: x1,
                             ty: ty,
-                            text: i
+                            text: textFormat(i)
                         });
                     }
                     for(var i = Math.ceil(min / step) * step; i <= max; i += step / 5) {
@@ -306,7 +316,7 @@
                             c: item.textStyle.color,
                             tx: tx,
                             ty: y1 + 5,
-                            text: i
+                            text: textFormat(i)
                         });
                     }
 
@@ -426,7 +436,7 @@
             }, 300);
         },
 
-        drawTrace: function(index, offsetX) {
+        drawTrace: function(offsetX, index) {
             var me = this,
                 option = this.option,
                 series = option.series,
@@ -443,7 +453,6 @@
             if(!series.length) return;
             callback = series[0]['callback'];
             if('function' !== typeof callback) return;
-console.log(callback, 'xxxxxxxxxx');
             // 暂时只显示一条
             x = (offsetX / grid.width) * (xmax - xmin) + xmin;
             y = callback(x);
@@ -476,7 +485,6 @@ console.log(callback, 'xxxxxxxxxx');
         methods: {
             inputchange: function(e) {
                 var value = typeof e === 'string' ? e : e.target.value;
-                console.log(value);
                 value && sgCharts.parseEquation(value);
             },
             mouseover: function(e) {
@@ -532,7 +540,7 @@ console.log(callback, 'xxxxxxxxxx');
                         y: grid.translateY
                     }
                 }else {
-                    svgFun.circle = sgCharts.drawTrace(0, e.offsetX);
+                    svgFun.circle = sgCharts.drawTrace(e.offsetX);
                 }
             },
 
