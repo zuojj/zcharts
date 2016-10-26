@@ -3,12 +3,13 @@
  * @authors Benjamin (zuojj.com@gmail.com)
  * @date    2016-10-25 10:56:53
  * @update
- * 1. tanx, 1/x函数图像边界处理
- * 2. 优化平移拖动错误，增加动画
- * 3. 细化坐标轴处理
- * 4. UI及code更新
- * 5. 组件封装
- * 6. 自动化工程
+ * tanx, 1/x函数图像边界处理
+ * 多项式pow嵌套解析处理
+ * 优化平移拖动错误，增加动画
+ * 细化坐标轴处理，tryToMakeFraction
+ * UI及code更新
+ * 组件封装
+ * 工程自动化
  */
 
 (function(window, Vue, Math) {
@@ -164,22 +165,36 @@
             values.forEach(function(value, index) {
                 var items = value.split(/ +/),
                     obj = {};
-
+console.log(items);
                 items = items.map(function(item, index) {
                     item = item.toLowerCase();
 
                     return math[item] && 'function' === typeof math[item] ? ('sgCharts.math.' + item) : item;
                 });
+console.log(items);
 
-                for(var i = 0, ilen = items.length; i < ilen; i ++) {
-                    var item = items[i];
+                var _getItems = function() {
+                    for(var i = 0, ilen = items.length; i < ilen; i ++) {
+                        var item = items[i];
 
-                    if(item === '^') {
-                        items.splice(i - 1, 3, 'Math.pow', '(', items[i - 1], ',', items[i + 1], ')');
-                        i += 4;
+                        if(Array.isArray(item)) {
+                            items[i] = _getItems(item);
+                        }
+                    }
+                    for(var i = 0, ilen = items.length; i < ilen; i ++) {
+                        var item = items[i];
+
+                        if(item === '^') {
+                            items.splice(i - 1, 3, new Array('Math.pow', new Array('(', items[i - 1], ',', items[i + 1], ')')));
+                            //items.splice(i - 1, 3, 'Math.pow', '(', items[i - 1], ',', items[i + 1], ')');
+                            //i += 4;
+                            i -= 2;
+                        }
                     }
                 }
+                _getItems(items);
 
+console.log(items);
                 eval('obj.callback=function(x) {return ' + items.join('') + ';}');
 
                 obj.lineStyle = obj.lineStyle || {};
