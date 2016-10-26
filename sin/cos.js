@@ -5,9 +5,10 @@
  * @version $Id$
  */
 
-(function() {
+(function(window, Vue, Math) {
     var sgCharts = {
         option: {
+            colors: ['#ff6949', '#00f', '#0f0', '#f0f', '#0ff'],
             grid: {
                 width: 500,
                 height: 250,
@@ -41,8 +42,9 @@
                 width: 1,
                 height: 250,
                 color: '#e7e7e7',
-                min: -2,
-                max: 2,
+                min: -4,
+                max: 4,
+                step: 1,
                 scaleStyle: {
                     len: 5,
                     color: '#bbb',
@@ -56,22 +58,140 @@
                     size: 11
                 }
             },
-            series: [{
-                name: 'sin(x)',
-                // type['function', 'ploar', 'parametric']
-                type: 'function',
-                lineStyle: {
-                    color: '#ff6949'
-                }
-            }]
+            series: []
         },
+        math: {
+            asin: Math.asin,
+            acos: Math.acos,
+            atan: Math.atan,
+            sin: Math.sin,
+            sinh: Math.sinh,
+            cos: Math.cos,
+            cosh: Math.cosh,
+            tan: Math.tan,
+            tanh: Math.tanh,
+            sec: function(x) {
+                return 1 / Math.cos(x);
+            },
+            csc: function(x) {
+                return 1 / Math.sin(x);
+            },
+            cot: function(x) {
+                return 1 / Math.tan(x);
+            },
+            asec: function(x) {
+                return Math.acos(1 / x);
+            },
+            acsc: function(x) {
+                return Math.asin(1 / x);
+            },
+            acot: function(x) {
+                return Math.atan(1 / x);
+            },
+            ln: function(x) {
+                return Math.log(x);
+            },
+            log: function(x) {
+                return Math.log(x) / Math.log(10);
+            },
+            sinh: function(x) {
+                return (Math.exp(x) - Math.exp(-x)) / 2;
+            },
+            cosh: function(x) {
+                return (Math.exp(x) + Math.exp(-x)) / 2;
+            },
+            tanh: function(x) {
+                return (Math.exp(x) - Math.exp(-x)) / (Math.exp(x) + Math.exp(-x));
+            },
+            asinh: function(x) {
+                return Math.log(x + Math.sqrt(x * x + 1));
+            },
+            acosh: function(x) {
+                return Math.log(x + Math.sqrt(x * x - 1));
+            },
+            atanh: function(x) {
+                return 0.5 * Math.log((1 + x) / (1 - x));
+            },
+            sech: function(x) {
+                return 2 / (Math.exp(x) + Math.exp(-x));
+            },
+            csch: function(x) {
+                return 2 / (Math.exp(x) - Math.exp(-x));
+            },
+            coth: function(x) {
+                return (Math.exp(x) + Math.exp(-x)) / (Math.exp(x) - Math.exp(-x));
+            },
+            asech: function(x) {
+                return Math.log(1 / x + Math.sqrt(1 / x / x - 1));
+            },
+            acsch: function(x) {
+                return Math.log(1 / x + Math.sqrt(1 / x / x + 1));
+            },
+            acoth: function(x) {
+                return 0.5 * Math.log((1 + x) / (1 - x));
+            }
+        },
+
+        parseEquation: function(value) {
+            var me = this,
+                option = me.option,
+                math = me.math,
+                colors = option.colors,
+                series = option.series = [];
+
+            //var value = '2sin(x) + cos(2x)';
+
+            value = value.replace(/ /g, "");
+            // 2sin(2x) => 2*sin(2*x)
+            value = value.replace(/([0-9])([a-df-z]|[a-z][a-z]|\()/ig, "$1*$2");
+            // sin(x)2 => sin(x)*2
+            value = value.replace(/(\))([0-9a-df-z]|[a-z][a-z]|\()/ig, "$1*$2");
+            // 2*sin(x) => 2 *sin(x)
+            value = value.replace(/([a-z0-9\.])([^a-z0-9\.])/ig, "$1 $2");
+            // sin(x)*2 => sin(x)* 2
+            value = value.replace(/([^a-z0-9\.])([a-z0-9\.])/ig, "$1 $2");
+            // a-b => a - b
+            value = value.replace(/(\-|\)|\()/g, " $1 ");
+
+            values = value.split(/\s,|，/);
+
+            values.forEach(function(value, index) {
+                var items = value.split(/ +/),
+                    obj = {};
+
+                serie = series[index] = series[index] || {};
+
+                items = items.map(function(item, index) {
+                    item = item.toLowerCase();
+
+                    return math[item] && 'function' === typeof math[item] ? ('sgCharts.math.' + item) : item;
+                });
+
+                for(var i = 0, ilen = items.length; i < ilen; i ++) {
+                    var item = items[i];
+
+                    if(item === '^') {
+                        items.splice(i - 1, 3, 'Math.pow', '(', items[i - 1], ',', items[i + 1], ')');
+                        i += 4;
+                    }
+                }
+
+                eval('series['+ index +']["callback"]=function(x) {return ' + items.join('') + ';}');
+
+                serie.lineStyle = serie.lineStyle || {};
+                serie.lineStyle.color = colors[index];
+                console.log(series[index].callback)
+            });
+            svgFun.gdata = me.drawAxis();
+        },
+
         getStep: function() {
             var option = this.option;
 
             [option.xAxis, option.yAxis].forEach(function(item, index) {
                 var orderfull, order, rem, step;
 
-                orderfull = -0.9 + Math.log(item.max - item.min) / Math.log(10);
+                orderfull = Math.log(item.max - item.min) / Math.log(10) - 0.9;
                 order = Math.floor(orderfull);
                 rem = orderfull - order;
                 step = Math.pow(10, order);
@@ -82,8 +202,7 @@
                 item.step = step;
             });
         },
-
-        drawGrid: function() {
+        drawAxis: function() {
             this.getStep();
 
             var option = this.option,
@@ -100,6 +219,8 @@
                 xhtml = [],
                 yhtml = [],
                 x, y, tx, ty;
+
+            console.log(xAxis.min, xAxis.max, yAxis.max, yAxis.min, 'min+max');
 
             x = (0 - xmin) / (xmax - xmin) * width;
             if(x <= 0) {
@@ -132,7 +253,11 @@
                     texts = [],
                     grids = [],
                     scales = [],
-                    x1, x2, y1, y2, gx1, gx2, gy1, gy2, rectx, recty;
+                    shortScales = [],
+                    x1, x2, y1, y2,
+                    sx1, sx2, sy1, sy2,
+                    gx1, gx2, gy1, gy2,
+                    rectx, recty;
 
                 if(index == 0) {
                     rectx = 0;
@@ -155,6 +280,14 @@
                             text: i
                         });
                     }
+                    for(var i = Math.ceil(min / step) * step; i <= max; i += step / 5) {
+                        if(i == 0) continue;
+                        sx1 = sx2 = (i - min) / (max - min) * grid.width;
+                        sy1 = y;
+                        sy2 = y + item.scaleStyle.len - 2;
+
+                        shortScales.push('M' + sx1 + ',' + sy1 + ' L' + sx2 + ',' + sy2);
+                    }
                 }else {
                     rectx = x;
                     recty = 0;
@@ -169,11 +302,20 @@
                         scales.push('M' + x1 + ',' + y1 + ' L' + x2 + ',' + y2);
 
                         texts.push({
+                            ta: 'start',
                             c: item.textStyle.color,
                             tx: tx,
                             ty: y1 + 5,
                             text: i
                         });
+                    }
+
+                    for(var i = Math.ceil(min / step) * step; i <= max; i += step / 5) {
+                        if(i == 0) continue;
+                        sx1 = x;
+                        sx2 = x + item.scaleStyle.len;
+                        sy1 = sy2 = (1 - (i - min) / (max - min)) * grid.height;
+                        shortScales.push('M' + sx1 + ',' + sy1 + ' L' + sx2 + ',' + sy2);
                     }
                 }
 
@@ -195,18 +337,26 @@
                         d: scales.join(' '),
                         c: item.scaleStyle.color,
                         b: item.scaleStyle.border
+                    },
+                    shortScale: {
+                        d: shortScales.join(' '),
+                        c: item.scaleStyle.shortScaleColor,
+                        b: item.scaleStyle.border
                     }
                 };
             });
 
             return {
                 axises: axises,
-                paths: this.drawFunction()
+                paths: this.drawFunction(),
             };
+            svgFun.circle = this.drawTrace(100);
         },
 
         drawFunction: function() {
-            var option = this.option,
+            var me = this,
+                option = me.option,
+                series = option.series,
                 grid = option.grid,
                 xAxis = option.xAxis,
                 yAxis = option.yAxis,
@@ -216,40 +366,47 @@
                 ymax = yAxis.max,
                 xstep = xAxis.step,
                 ystep = yAxis.step,
-                px, py, x, y,html = ['M'];
+                px, py, x, y, result = [];
 
-            for(var px = 0; px < grid.width; px += 0.25) {
-                x = (px / grid.width) * (xmax - xmin) + xmin;
-                y = Math.sin(x);
+            series && series.length && series.forEach(function(item) {
+                var path = ['M'],
+                    callback = item.callback;
 
-                if(!isNaN(y)){
-                    py = (ymax - y) / (ymax - ymin) * grid.height;
+                if('function' !== typeof callback) return;
+
+                for(var px = 0; px < grid.width; px += 0.25) {
+                    x = (px / grid.width) * (xmax - xmin) + xmin;
+
+                    y = callback(x);
+
+                    if(!isFinite(y)) {continue}
+
+                    if(!isNaN(y)){
+                        py = (ymax - y) / (ymax - ymin) * grid.height;
+                    }
+
+                    path.push(px + ',' + py);
                 }
 
-                html.push(px + ',' + py);
-            }
+                result.push({
+                    d: path.join(' '),
+                    c: item.lineStyle.color,
+                    w: item.lineStyle.width
+                });
+            });
 
-            return [{
-                d: html.join(' '),
-                c: '#f00',
-                w: 1
-            }]
+            return result;
         },
 
-        reDraw: function() {
-            vm.gdata = this.drawGrid();
-        },
-
-        zoom: function(factor) {
+        drawZoom: function(factor) {
             var me = this,
                 option = me.option,
                 grid = option.grid,
                 xAxis = option.xAxis,
                 yAxis = option.yAxis;
 
-            vm.scale = 'scale(' + factor +')';
+            svgFun.scale = 'scale(' + factor +')';
             grid.zoom *= factor;
-
 
             setTimeout(function() {
                 var cx = (xAxis.max + xAxis.min) / 2,
@@ -263,13 +420,16 @@
 
                 grid.zoom = 1;
 
-                vm.gdata = me.drawGrid();
-                vm.scale = '';
+                svgFun.gdata = me.drawAxis();
+                svgFun.scale = false;
+                svgFun.circle = me.drawTrace(200);
             }, 300);
         },
 
-        drawTrace: function(offsetX) {
-            var option = this.option,
+        drawTrace: function(index, offsetX) {
+            var me = this,
+                option = this.option,
+                series = option.series,
                 grid = option.grid,
                 xAxis = option.xAxis,
                 yAxis = option.yAxis,
@@ -277,10 +437,16 @@
                 xmax = xAxis.max,
                 ymin = yAxis.min,
                 ymax = yAxis.max,
-                px, py, x, y;
+                result = [],
+                callback,px, py, x, y;
 
+            if(!series.length) return;
+            callback = series[0]['callback'];
+            if('function' !== typeof callback) return;
+console.log(callback, 'xxxxxxxxxx');
+            // 暂时只显示一条
             x = (offsetX / grid.width) * (xmax - xmin) + xmin;
-            y = Math.sin(x);
+            y = callback(x);
 
             if(!isNaN(y)){
                 py = (ymax - y) / (ymax - ymin) * grid.height;
@@ -291,26 +457,31 @@
                 cy: py,
                 x: x.toFixed(7),
                 y: y.toFixed(7)
-            }
+            };
         }
     };
 
-    var count = 0;
-    var vm = new Vue({
+    var svgFun = new Vue({
         el: '#example',
         data: {
-            gdata: sgCharts.drawGrid(),
-            circle: sgCharts.drawTrace(258),
+            gdata: false,
+            circle: false,
             transform: {x: 0, y: 0},
-            scale: '',
-            strans: '',
-            etrans: ''
+            transition: false,
+            scale: false,
+            strans: false,
+            etrans: false,
+            functions: '2sin(x^2),1/x, x/2'
         },
         methods: {
+            inputchange: function(e) {
+                var value = typeof e === 'string' ? e : e.target.value;
+                console.log(value);
+                value && sgCharts.parseEquation(value);
+            },
             mouseover: function(e) {
                 var grid = sgCharts.option.grid;
                 grid.isMouseDown = false;
-                // e.target.style.cursor = "move";
             },
 
             mouseout: function(e) {
@@ -331,18 +502,17 @@
 
                     var me = this;
                     setTimeout(function() {
-                        me.gdata = sgCharts.drawGrid();
+                        me.gdata = sgCharts.drawAxis();
+                        me.transform = 'translate(0,0)';
                     }, 100);
-
-
-                    this.transform = 'translate(0,0)';
                 }
             },
 
             mousedown: function(e) {
-                var grid = sgCharts.option.grid;
+                var grid = sgCharts.option.grid,
+                    tagname = e.target.tagName;
 
-                if(!grid.isMouseDown) {
+                if(!grid.isMouseDown && tagname === 'svg') {
                     grid.pageX = e.offsetX;
                     grid.pageY = e.offsetY;
                     grid.isMouseDown = true;
@@ -351,18 +521,18 @@
             },
 
             mousemove: function(e) {
-                var grid = sgCharts.option.grid;
+                var grid = sgCharts.option.grid,
+                    tagname = e.target.tagName;
 
-                if(grid.isMouseDown) {
+                if(grid.isMouseDown && tagname === 'svg') {
                     grid.translateX = e.offsetX - grid.pageX;
                     grid.translateY = e.offsetY - grid.pageY;
-                    //this.transform = 'translate(' + grid.translateX + ',' + grid.translateY + ')';
-                    vm.transform = {
+                    svgFun.transform = {
                         x: grid.translateX,
                         y: grid.translateY
                     }
                 }else {
-                    vm.circle = sgCharts.drawTrace(e.offsetX);
+                    svgFun.circle = sgCharts.drawTrace(0, e.offsetX);
                 }
             },
 
@@ -370,10 +540,12 @@
                 var option = sgCharts.option,
                     grid   = option.grid,
                     xAxis  = option.xAxis,
-                    yAxis  = option.yAxis;
+                    yAxis  = option.yAxis,
+                    tagname = e.target.tagName;
 
-                if(grid.isMouseDown) {
-
+                    var me = this;
+                if(grid.isMouseDown && tagname === 'svg') {
+                    this.transition = 'transform 10s ease';
                     grid.isMouseDown = false;
                     var x = grid.translateX / grid.width * (xAxis.max - xAxis.min),
                         y = grid.translateY / grid.height * (yAxis.max - yAxis.min);
@@ -386,45 +558,32 @@
 
                     var me = this;
                     setTimeout(function() {
-                        me.gdata = sgCharts.drawGrid();
-                    }, 100);
-
-
-                    this.transform = {x: 0, y: 0};
+                        me.gdata = sgCharts.drawAxis();
+                        me.transform = {x: 0, y: 0};
+                        me.transition = false;
+                    }, 200);
                 }
             },
 
             mousewheel: function(e) {
                 var zoom = e.wheelDelta > 0 ? 1.25 : 0.8;
-                sgCharts.zoom(zoom);
+                sgCharts.drawZoom(zoom);
             },
 
             plusClick: function() {
-                sgCharts.zoom(1.25);
+                sgCharts.drawZoom(1.25);
             },
 
             minusClick: function() {
-                sgCharts.zoom(0.8);
+                sgCharts.drawZoom(0.8);
             },
 
             arrow_mouseover: function() {
-                vm.etrans = 'translate(34, 0)';
-                vm.strans = 'translate(17, 0)';
-            },
-
-            op_mouseover: function() {
-
-            },
-
-            op_mouseout: function() {
-
-            },
-
-            op_mousedown: function() {
-
+                svgFun.etrans = 'translate(34, 0)';
+                svgFun.strans = 'translate(17, 0)';
             }
         }
-    })
-sgCharts.drawGrid();
+    });
 
-})();
+    svgFun.inputchange(svgFun.functions);
+})(window, Vue, Math);
