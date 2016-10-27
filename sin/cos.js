@@ -3,10 +3,11 @@
  * @authors Benjamin (zuojj.com@gmail.com)
  * @date    2016-10-25 10:56:53
  * @update
- * tanx, 1/x函数图像边界处理
+ * tanx, 1/x函数图像边界处理, 已解决
+ * 扩展坐标轴长
  * 多项式pow嵌套解析处理
  * 优化平移拖动错误，增加动画
- * 细化坐标轴处理，tryToMakeFraction
+ * 细化坐标轴刻度
  * UI及code更新
  * 组件封装
  * 工程自动化
@@ -49,8 +50,8 @@
                 width: 1,
                 height: 250,
                 color: '#e7e7e7',
-                min: -4,
-                max: 4,
+                min: -3.5,
+                max: 3.5,
                 step: 1,
                 scaleStyle: {
                     len: 5,
@@ -68,9 +69,12 @@
             series: []
         },
         math: {
-            asin: Math.asin,
-            acos: Math.acos,
-            atan: Math.atan,
+            pow: Math.pow,
+            pi: Math.PI,
+            abs: Math.abs,
+            arcsin: Math.asin,
+            arcos: Math.acos,
+            arctan: Math.atan,
             sin: Math.sin,
             sinh: Math.sinh,
             cos: Math.cos,
@@ -144,11 +148,61 @@
                 option = me.option,
                 math = me.math,
                 colors = option.colors,
-                series = option.series = [];
+                series = option.series = [],
+                parsePower = function(items) {
+                    for(var i = 0, ilen = items.length; i < ilen; i++) {
+                        var _t = i,
+                            isHas = false,
+                            item = items[i],
+                            before = items[i - 1],
+                            after = items[i + 1];
+
+                        if(item === '^') {
+/*                            if(!before || !after || before === '(' || after === ')') {
+                                console.log('^ requires two arguments, eg: x^2');
+                            }
+
+
+                            if(before === ')') {
+                                if(after === '(') {
+
+                                }else {
+                                    while(_t > 0) {
+                                        if(items[_t] === '(') {
+                                            items[_t] = 'pow(';
+                                            isHas = true;
+
+                                            items.splice(_t, 3, ['Math.pow', '(', items[i - 1], ',', items[i + 1], ')'].join('') );
+                                        }
+                                        _t --;
+                                    }
+                                    if(!isHas) {
+                                        console.log('Unmatched left parentheses (');
+                                    }
+                                }
+
+                            }else if(after === '(') {
+                                while (_t < ilen) {
+                                    if(items[i] === ')') {
+
+                                    }
+                                }
+                            }else {
+
+                            }*/
+
+                            items.splice(i - 1, 3, ['Math.pow', '(', items[i - 1], ',', items[i + 1], ')'].join('') );
+                            i -= 2;
+                        }
+                    }
+
+                    return items;
+                };
 
             //var value = '2sin(x) + cos(2x)';
 
-            value = value.replace(/ /g, "");
+            value = value.replace(/\s+/g, '');
+console.log(value);
             // 2sin(2x) => 2*sin(2*x)
             value = value.replace(/([0-9])([a-df-z]|[a-z][a-z]|\()/ig, "$1*$2");
             // sin(x)2 => sin(x)*2
@@ -157,51 +211,43 @@
             value = value.replace(/([a-z0-9\.])([^a-z0-9\.])/ig, "$1 $2");
             // sin(x)*2 => sin(x)* 2
             value = value.replace(/([^a-z0-9\.])([a-z0-9\.])/ig, "$1 $2");
-            // a-b => a - b
+            // sin(x +2)^2 => sin(x +2 ) ^ 2
             value = value.replace(/(\-|\)|\()/g, " $1 ");
 
             values = value.split(/\s,|，/);
 
+            // values = [2sin(x), cos(x), 1/x]
             values.forEach(function(value, index) {
                 var items = value.split(/ +/),
                     obj = {};
 console.log(items);
-                items = items.map(function(item, index) {
-                    item = item.toLowerCase();
+                items = items.map(function(item) {
+                    return item.toLowerCase().trim();
+                }).filter(function(item) {
+                    return item && item.length > 0;
+                });
 
-                    return math[item] && 'function' === typeof math[item] ? ('sgCharts.math.' + item) : item;
+                items = parsePower(items);
+
+                items = items.map(function(item, index) {
+                    item = item.replace(/^\s+.+\s+$/, '');
+                    item = Array.isArray(item) ? item.join('') : item;
+
+                    item = math[item] ? ('sgCharts.math.' + item) : item;
+                    return item;
                 });
 console.log(items);
-
-                var _getItems = function() {
-                    for(var i = 0, ilen = items.length; i < ilen; i ++) {
-                        var item = items[i];
-
-                        if(Array.isArray(item)) {
-                            items[i] = _getItems(item);
-                        }
-                    }
-                    for(var i = 0, ilen = items.length; i < ilen; i ++) {
-                        var item = items[i];
-
-                        if(item === '^') {
-                            items.splice(i - 1, 3, new Array('Math.pow', new Array('(', items[i - 1], ',', items[i + 1], ')')));
-                            //items.splice(i - 1, 3, 'Math.pow', '(', items[i - 1], ',', items[i + 1], ')');
-                            //i += 4;
-                            i -= 2;
-                        }
-                    }
-                }
-                _getItems(items);
-
-console.log(items);
-                eval('obj.callback=function(x) {return ' + items.join('') + ';}');
+                eval('obj.callback=function(x) {return ' + items.join('').replace(/\u200b/, '') + ';}');
 
                 obj.lineStyle = obj.lineStyle || {};
                 obj.lineStyle.color = colors[index];
+                obj.lineStyle.width = 1;
                 series.push(obj);
+                console.log(obj.callback);
             });
+
             svgFun.gdata = me.drawAxis();
+            svgFun.circle = me.drawTrace(250);
         },
 
         getStep: function() {
@@ -210,13 +256,18 @@ console.log(items);
             [option.xAxis, option.yAxis].forEach(function(item, index) {
                 var orderfull, order, rem, step;
 
-                orderfull = Math.log(item.max - item.min) / Math.log(10) - 0.9;
+                orderfull = Math.log(item.max - item.min) / Math.log(10) - 0.8;
                 order = Math.floor(orderfull);
                 rem = orderfull - order;
                 step = Math.pow(10, order);
 
-                if (rem > .7) step *= 5;
-                else if (rem > .3) step *= 2;
+                if(rem > .7) {
+                    step *= 5;
+                }else if(rem > .5) {
+                    step *= 3;
+                }else if(rem > .3){
+                    step *= 2;
+                }
 
                 item.step = step;
             });
@@ -279,6 +330,7 @@ console.log(items);
                     grids = [],
                     scales = [],
                     shortScales = [],
+                    text,
                     x1, x2, y1, y2,
                     sx1, sx2, sy1, sy2,
                     gx1, gx2, gy1, gy2,
@@ -288,7 +340,8 @@ console.log(items);
                     rectx = 0;
                     recty = y;
                     for(var i = Math.ceil(min / step) * step; i <= max; i += step) {
-                        if(i == 0) continue;
+                        text = textFormat(i);
+                        if(text == 0) continue;
                         x1 = x2 = gx1 = gx2 = (i - min) / (max - min) * grid.width;
                         y1 = y;
                         y2 = y + item.scaleStyle.len;
@@ -302,7 +355,7 @@ console.log(items);
                             c: item.textStyle.color,
                             tx: x1,
                             ty: ty,
-                            text: textFormat(i)
+                            text: text
                         });
                     }
                     for(var i = Math.ceil(min / step) * step; i <= max; i += step / 5) {
@@ -317,7 +370,8 @@ console.log(items);
                     rectx = x;
                     recty = 0;
                     for(var i = Math.ceil(min / step) * step; i <= max; i += step) {
-                        if(i == 0) continue;
+                        text = textFormat(i);
+                        if(text == 0) continue;
                         x1 = x;
                         x2 = x + item.scaleStyle.len;
                         gx1 = 0;
@@ -331,7 +385,7 @@ console.log(items);
                             c: item.textStyle.color,
                             tx: tx,
                             ty: y1 + 5,
-                            text: textFormat(i)
+                            text: text
                         });
                     }
 
@@ -383,6 +437,8 @@ console.log(items);
                 option = me.option,
                 series = option.series,
                 grid = option.grid,
+                height = grid.height,
+                width = grid.width,
                 xAxis = option.xAxis,
                 yAxis = option.yAxis,
                 xmin = xAxis.min,
@@ -398,20 +454,33 @@ console.log(items);
                     callback = item.callback;
 
                 if('function' !== typeof callback) return;
+                var aa = [];
+                for(var px = 0; px < width; px += 0.5) {
+                    x = (px / width) * (xmax - xmin) + xmin;
 
-                for(var px = 0; px < grid.width; px += 0.25) {
-                    x = (px / grid.width) * (xmax - xmin) + xmin;
-
+                    if(x === Math.PI / 2) console.log(x);
                     y = callback(x);
 
-                    if(!isFinite(y)) {continue}
+                    if(!isFinite(y)) {
+                        path.push('M');
+                        continue;
+                    };
 
                     if(!isNaN(y)){
-                        py = (ymax - y) / (ymax - ymin) * grid.height;
+                        py = (ymax - y) / (ymax - ymin) * height;
                     }
 
+/*                    if(py > height *2 ) {
+                        py = height *2;
+                    }else if(py < 0 - height) {
+                        py = 0 - height;
+                    }
+*/
+
+                    aa.push(py);
                     path.push(px + ',' + py);
                 }
+                console.log(Math.max.apply(Math, aa));
 
                 result.push({
                     d: path.join(' '),
@@ -478,9 +547,9 @@ console.log(items);
 
             return {
                 cx: offsetX,
-                cy: py,
-                x: x.toFixed(7),
-                y: y.toFixed(7)
+                cy: isFinite(py) ? py : 0,
+                x: x.toString().substr(0, 10),
+                y: y.toString().substr(0, 10)
             };
         }
     };
@@ -495,7 +564,7 @@ console.log(items);
             scale: false,
             strans: false,
             etrans: false,
-            functions: '2sin(x^2),1/x, x/2'
+            functions: 'tan(x)'
         },
         methods: {
             inputchange: function(e) {
