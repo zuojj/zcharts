@@ -3,15 +3,22 @@
  * @authors Benjamin (zuojj.com@gmail.com)
  * @date    2016-10-25 10:56:53
  * @update
- * body禁止滚动处理
+ * tanx, 1/x函数图像边界处理, 已解决
+ * 扩展坐标轴长
+ * 多项式pow嵌套解析处理
+ * 优化平移拖动错误，增加动画
+ * 细化坐标轴刻度
+ * UI及code更新
+ * 组件封装
+ * 工程自动化
  */
 
 (function(window, Vue, Math) {
     var sgCharts = {
         option: {
-            colors: ['#ff5a34', '#4b9bf9', '#97d48c', '#febe44', '#ccc'],
+            colors: ['#ff6949', '#00f', '#0f0', '#f0f', '#0ff'],
             grid: {
-                width: 528,
+                width: 500,
                 height: 250,
                 // 上、右、下、左
                 padding: [10, 10, 10, 10],
@@ -140,8 +147,6 @@
                 math = me.math,
                 colors = option.colors,
                 series = option.series = [],
-                titles = [],
-                miniCircles = [],
                 parsePower = function(items) {
                     for(var i = 0, ilen = items.length; i < ilen; i++) {
                         var _t = i,
@@ -232,22 +237,15 @@ console.log(items);
 console.log(items);
                 eval('obj.callback=function(x) {return ' + items.join('').replace(/\u200b/, '') + ';}');
 
-                obj.name = value;
                 obj.lineStyle = obj.lineStyle || {};
                 obj.lineStyle.color = colors[index];
-                obj.lineStyle.width = 1.5;
+                obj.lineStyle.width = 1;
                 series.push(obj);
-
-                miniCircles.push('<li data-index="'+index+'"><i style="background-color: '+ colors[index]+'">·</i></li>');
-                titles.push('<strong style="color: '+ colors[index]+'">'+ value +'</strong>');
                 console.log(obj.callback);
             });
 
-
-            svgFun.titles = titles.join(',');
             svgFun.gdata = me.draw();
             svgFun.circle = me.drawTrace(250);
-            svgFun.miniCircles = miniCircles.join('\n');
         },
 
         draw: function() {
@@ -328,6 +326,7 @@ console.log(items);
             }
 
             var axises = {};
+
             [xAxis, yAxis].forEach(function(item, index) {
                 var step = item.step,
                     scale_2 = (item.scaleStyle.len - item.borderWidth) / 2,
@@ -343,7 +342,6 @@ console.log(items);
                     grids = [],
                     scales = [],
                     shortScales = [],
-                    jump = 5,
                     text,
                     x1, x2, y1, y2,
                     sx1, sx2, sy1, sy2,
@@ -354,44 +352,69 @@ console.log(items);
                     // x轴
                     rectx = 0 - width;
                     recty = y;
+                    for(var i = Math.ceil(min / step) * step; i <= max; i += step) {
+                        text = textFormat(i);
+                        if(text == 0) continue;
+
+                        // scale
+                        x1 = x2 = (i - min) / (max - min) * item.width - width;
+                        y1 = y - scale_2;
+                        y2 = y + scale_2;
+                        scales.push('M' + x1 + ',' + y1 + ' L' + x2 + ',' + y2);
+
+                        // grid
+                        if(grid.show) {
+                            gx1 = gx2 = x1;
+                            gy1 = 0 - height;
+                            gy2 = height * 2;
+
+                            grid.show && grids.push('M' + gx1 + ',' + gy1 + ' L' + gx2 + ',' + gy2);
+                        }
+
+                        texts.push({
+                            ta: 'middle',
+                            c: item.textStyle.color,
+                            tx: x1,
+                            ty: ty,
+                            text: text
+                        });
+                    }
 
                     for(var i = Math.ceil(min / step) * step; i <= max; i += step / 5) {
+                        if(i == 0) continue;
                         sx1 = sx2 = (i - min) / (max - min) * item.width - width;
                         sy1 = y - shortScale_2;
                         sy2 = y + shortScale_2;
                         shortScales.push('M' + sx1 + ',' + sy1 + ' L' + sx2 + ',' + sy2);
-
-                        if(jump % 5 == 0) {
-                            // scale
-                            x1 = x2 = (i - min) / (max - min) * item.width - width;
-                            y1 = y - scale_2;
-                            y2 = y + scale_2;
-                            scales.push('M' + x1 + ',' + y1 + ' L' + x2 + ',' + y2);
-
-                            // grid
-                            if(grid.show) {
-                                gx1 = gx2 = x1;
-                                gy1 = 0 - height;
-                                gy2 = height * 2;
-
-                                grid.show && grids.push('M' + gx1 + ',' + gy1 + ' L' + gx2 + ',' + gy2);
-                            }
-
-                            // text
-                            text = textFormat(i);
-                            texts.push({
-                                ta: 'middle',
-                                c: item.textStyle.color,
-                                tx: x1,
-                                ty: ty,
-                                text: text != 0 ? text : ''
-                            });
-                        }
-                        jump ++;
                     }
                 }else {
                     rectx = x;
                     recty = 0 - height;
+                    for(var i = Math.ceil(min / step) * step; i <= max; i += step) {
+                        text = textFormat(i);
+                        if(text == 0) continue;
+
+                        // scale
+                        x1 = x - scale_2;
+                        x2 = x + scale_2;
+                        y1 = y2 = gy1 = gy2 = (1 - (i - min) / (max - min)) * item.height - height;
+                        scales.push('M' + x1 + ',' + y1 + ' L' + x2 + ',' + y2);
+
+                        if(grid.show) {
+                            gx1 = 0 - width;
+                            gx2 = width * 2;
+                            gy1 = gy2 = y1;
+                            grids.push('M' + gx1 + ',' + gy1 + ' L' + gx2 + ',' + gy2);
+                        }
+
+                        texts.push({
+                            ta: yta,
+                            c: item.textStyle.color,
+                            tx: tx,
+                            ty: y1 + 5,
+                            text: text
+                        });
+                    }
 
                     for(var i = Math.ceil(min / step) * step; i <= max; i += step / 5) {
                         if(i == 0) continue;
@@ -399,34 +422,6 @@ console.log(items);
                         sx2 = x + shortScale_2;
                         sy1 = sy2 = (1 - (i - min) / (max - min)) * item.height - height;
                         shortScales.push('M' + sx1 + ',' + sy1 + ' L' + sx2 + ',' + sy2);
-
-                        if(jump % 5 == 0) {
-
-                            // scale
-                            x1 = x - scale_2;
-                            x2 = x + scale_2;
-                            y1 = y2 = gy1 = gy2 = (1 - (i - min) / (max - min)) * item.height - height;
-                            scales.push('M' + x1 + ',' + y1 + ' L' + x2 + ',' + y2);
-
-                            if(grid.show) {
-                                gx1 = 0 - width;
-                                gx2 = width * 2;
-                                gy1 = gy2 = y1;
-                                grids.push('M' + gx1 + ',' + gy1 + ' L' + gx2 + ',' + gy2);
-                            }
-
-                            // text
-                            text = textFormat(i);
-                            texts.push({
-                                ta: yta,
-                                c: item.textStyle.color,
-                                tx: tx,
-                                ty: y1 + 5,
-                                text: text != 0 ? text : ''
-                            });
-                        }
-
-                        jump ++;
                     }
                 }
 
@@ -570,21 +565,12 @@ console.log(items);
                 xmax = xAxis.amax,
                 ymin = yAxis.amin,
                 ymax = yAxis.amax,
-                selected = 0,
                 callback,
                 result = [],
                 callback,px, py, x, y;
 
             if(!series.length) return;
-
-            series.forEach(function(item, index) {
-                if(item.selected === true) {
-                    selected = index;
-                }
-            });
-
-            callback = series[selected]['callback'];
-
+            callback = series[index || 0]['callback'];
             if('function' !== typeof callback) return;
 
             // 暂时只显示一条
@@ -598,7 +584,6 @@ console.log(items);
             return {
                 cx: offsetX,
                 cy: isFinite(py) ? py : 0,
-                c: option.colors[selected],
                 x: x.toString().substr(0, 10),
                 y: y.toString().substr(0, 10)
             };
@@ -608,17 +593,13 @@ console.log(items);
     var svgFun = new Vue({
         el: '#example',
         data: {
-            miniCircles: false,
-            titles: false,
-            width: sgCharts.option.grid.width,
-            height: sgCharts.option.grid.height,
             gdata: false,
             circle: false,
             transform: {x: 0, y: 0},
             scale: false,
             strans: false,
             etrans: false,
-            functions: 'tan(x),sec(x),sin(x),x/2'
+            functions: 'tan(x)'
         },
         methods: {
             inputchange: function(e) {
@@ -652,10 +633,11 @@ console.log(items);
                 if(grid.isMouseDown && tagname === 'svg') {
                     offsetX = offsetX <= 0 ? 1 : offsetX >= width ? width : offsetX;
                     offsetY = offsetY <= 0 ? 1 : offsetY >= width ? width : offsetY;
-
+                    console.log(offsetX, offsetY);
                     grid.translateX = offsetX - grid.offsetX;
                     grid.translateY = offsetY - grid.offsetY;
-
+                    console.log(grid.translateX, grid.translateY);
+                    console.log(e.offsetX)
                     svgFun.transform = {
                         x: grid.translateX,
                         y: grid.translateY
@@ -677,6 +659,7 @@ console.log(items);
                     var x = grid.translateX / xAxis.width * (xAxis.amax - xAxis.amin),
                         y = grid.translateY / yAxis.height * (yAxis.amax - yAxis.amin);
 
+                    console.log(x, y, 'translate');
                     xAxis.amin -= x;
                     xAxis.amax -= x;
                     yAxis.amin += y;
@@ -703,18 +686,6 @@ console.log(items);
                 sgCharts.drawZoom(0.8);
             },
 
-            minCircleClick: function(e) {
-                var target = e.target;
-
-                target = /^i$/i.test(target.tagName) ? target.parentNode : target;
-                var index = +target.getAttribute('data-index');
-
-
-                sgCharts.option.series.forEach(function(item, i) {
-                    item.selected = i === index;
-                });
-            },
-
             arrow_mouseover: function() {
                 svgFun.etrans = 'translate(34, 0)';
                 svgFun.strans = 'translate(17, 0)';
@@ -722,8 +693,5 @@ console.log(items);
         }
     });
 
-    document.body.addEventListener('mousewheel', function(e) {
-        e.preventDefault();
-    });
     svgFun.inputchange(svgFun.functions);
 })(window, Vue, Math);

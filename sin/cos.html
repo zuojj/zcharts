@@ -16,12 +16,14 @@
 <script type="text/javascript" src="../vue.js"></script>
 </head>
 <body>
-<div id="example" @mousedown="mousedown" @mousemove="mousemove" @mouseup="mouseup" @mousewheel="mousewheel" @mouseout="mouseout" @mouseover="mouseover">
+<div id="example" @mousedown="mousedown" @mousemove="mousemove" @mouseup="mouseup" @mousewheel="mousewheel" @mouseover="mouseover">
 
     <div class="operators"></div>
     <svg width="500" height="250" style="-webkit-user-select: none; overflow: hidden; box-shadow: 0 0 1px 1px #ccc">
-        <g v-for="item in gdata.axises" :transform="'translate('+ transform.x + ',' + transform.y +')'" :style="{transition: transition}">
+        <g v-for="item in gdata.axises" :transform="'translate('+ transform.x + ',' + transform.y +')'">
+            <!-- grid S -->
             <path :stroke-width="item.grid.w" :stroke="item.grid.c" :d="item.grid.d"></path>
+            <!-- grid E -->
             <rect :x="item.rect.x" :y="item.rect.y" :width="item.rect.w" :height="item.rect.h" :fill="item.rect.c"></rect>
             <path :stroke-width="item.shortScale.b" :stroke="item.shortScale.c" :d="item.shortScale.d"></path>
             <path :stroke-width="item.scale.b" :stroke="item.scale.c" :d="item.scale.d"></path>
@@ -29,7 +31,7 @@
                 <text v-for="t in item.texts" :text-anchor="t.ta" :x="t.tx" :y="t.ty">{{t.text}}</text>
             </g>
         </g>
-        <g :transform="'translate('+ transform.x + ',' + transform.y +')'" :style="{transition: transition}">
+        <g :transform="'translate('+ transform.x + ',' + transform.y +')'">
             <circle r="3.5" fill="#ff6949" :cx="circle.cx" :cy="circle.cy"></circle>
             <path v-for="path in gdata.paths" :stroke="path.c" :stroke-width="path.w" fill="none" :d="path.d"></path>
         </g>
