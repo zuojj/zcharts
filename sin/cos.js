@@ -4,6 +4,7 @@
  * @date    2016-10-25 10:56:53
  * @update
  * body禁止滚动处理
+ * firefox使用DOMMouseScroll，其他浏览器使用onmousewheel，阻止事件冒泡
  */
 
 (function(window, Vue, Math) {
