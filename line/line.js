@@ -70,7 +70,6 @@
             this._max = parseInt(Math.max.apply(Math, arr));
             this._splitNumber = splitNumber;
 
-console.log(this._min, this._max);
             return this.niceInterval(fixMin, fixMax);
         },
         nice: function(val, round) {
@@ -104,7 +103,6 @@ console.log(this._min, this._max);
             min = fixMin || Math.floor(min / splitStep) * splitStep;
             max = fixMax || Math.ceil(max / splitStep) * splitStep;
 
-            console.log(min, max);
             for (var curr = min; curr <= max; curr += splitStep) {
                 result.push(curr);
             }
@@ -126,10 +124,10 @@ console.log(this._min, this._max);
                 $container = $(opts.container),
                 $svg = me.$svg = $container.find('svg');
 
-            me.$axis = $svg.find('.svg-line-axis');
-            me.$path = $svg.find('.svg-line-path');
-            me.$trace = $svg.find('.svg-line-trace');
-            me.$legend = $container.find('div.svg-line-legend');
+            me.$axis = $svg.find('.zcharts-line-axis');
+            me.$path = $svg.find('.zcharts-line-path');
+            me.$trace = $svg.find('.zcharts-line-trace');
+            me.$legend = $container.find('div.zcharts-line-legend');
 
             [opts.xAxis, opts.yAxis].forEach(function(item, index) {
                 var _labels;

@@ -7,54 +7,28 @@
     <title>Examples</title>
     <meta name="description" content="">
     <meta name="keywords" content="">
-    <style type="text/css">
-    #svgMath {
-        width: 500px;
-        margin: 40px auto;
-    }
-
-.clearfix:before, .clearfix:after { content: " "; clear: both; display: block; height: 0; font-size: 0; line-height: 0; overflow: hidden; width: 100%; }
-.clearfix:after { clear: both; }
-
-.vr-curve161017 { border: 1px solid #ececec; padding: 15px 10px 12px; overflow: hidden; }
-.vr-curve161017 .state { font-size: 16px; line-height: 16px; color: #666; }
-.vr-curve161017 .popu { font-size: 26px; font-family: "Microsoft Yahei"; line-height: 26px; margin-top: 10px; }
-.vr-curve161017 .svg-box { margin-top: 15px; overflow: hidden; position: relative; }
-.vr-curve161017 .svg-box .svg-ani { width: 412px; height: 215px; float: left; }
-.vr-curve161017 .svg-box .svg-adr { width: 96px; float: left; margin-left: 10px; margin-top: -10px; }
-.vr-curve161017 .svg-box .svg-adr p { padding-left: 12px; margin-top: 13px; line-height: 16px; color: #999; position: relative; }
-.vr-curve161017 .svg-box .svg-adr p:before { content: ''; width: 6px; height: 6px; border-radius: 6px; background: #ff6949; position: absolute; top: 4px; left: 0; }
-.vr-curve161017 .svg-box .svg-adr p:nth-of-type(2):before { background: #4b9bf9; }
-.vr-curve161017 .svg-box .svg-adr p:nth-of-type(3):before { background: #97d48c; }
-.vr-curve161017 .svg-box .svg-adr .cur { color: #333; }
-.svg-math-operator { position: absolute; top: 10px; left: 10px; }
-.svg-math-operator span { width: 16px; height: 16px; display: inline-block; border: 1px solid #ddd; background: url(../images/ico_sin.png) no-repeat; position: absolute; }
-.svg-math-operator span:hover { box-shadow: inset 0 0 1px #000; }
-.svg-math-operator .op1 { background-position: 0 0; top: 0; left: 0; }
-.svg-math-operator .op2 { top: 17px; left: 0; background-position: 0 -16px; }
-
-</style>
-<script type="text/javascript" src="../jquery-3.1.1.js"></script>
+    <link rel="stylesheet" type="text/css" href="math.css">
 </head>
 <body>
     <div class="zcharts-math">
         <div class="zcharts-math-operator">
-            <span class="op1" data-index="-1"></span>
-            <span class="op2" data-index="1"></span>
+            <span class="zoomout" data-index="-1"></span>
+            <span class="zoomin" data-index="1"></span>
         </div>
         <div class="zcharts-math-toggle">
-            <ul class="line-color"></ul>
-            <div class="arrow"><i></i></div>
+            <ul class="list"></ul>
+            <div class="arrow-down"><i></i></div>
         </div>
         <div class="zcharts-math-valbox">
             <span>x= <em class="xvalue">0</em></span><span>y= <em class="yvalue">0</em></span>
         </div>
-        <svg width="100%" height="100%">
+        <svg width="500" height="250">
             <g class="zcharts-math-axis"></g>
             <g class="zcharts-math-path"></g>
             <g class="zcharts-math-trace"></g>
         </svg>
     </div>
+    <script type="text/javascript" src="../jquery-3.1.1.js"></script>
     <script type="text/javascript" src="math.js"></script>
     <script type="text/javascript">
         new ZCharts.math({

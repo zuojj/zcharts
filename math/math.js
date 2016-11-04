@@ -156,6 +156,7 @@
 
         init: function() {
             var me = this,
+                opts = me.options,
                 $container = $(opts.container);
 
             me.$svg      = $container.find('svg');
@@ -539,7 +540,7 @@
                     html.push('<li data-index="'+index+'" class="'+ c +'"><i style="background-color: '+ colors[index]+'">·</i></li>');
                 });
 
-                me.$toggle.find('.line-color').html(html.join('\n'));
+                me.$toggle.find('.list').html(html.join('\n'));
             }
         },
 
@@ -655,9 +656,9 @@
                     item.selected = index == i;
                 });
                 me.drawTrace();
-            }).on('mouseover', '.arrow', function() {
+            }).on('mouseover', '.arrow-down', function() {
                 me.$toggle.find('li').show();
-            }).on('mouseout', '.line-color', function(e) {
+            }).on('mouseout', '.list', function(e) {
                 var to = e.toElement.tagName.toLowerCase(),
                     series = opts.series;
                 if(to === 'li' || to === 'i') return;
