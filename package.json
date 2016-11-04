@@ -1,0 +1,31 @@
+{
+  "name": "zcharts",
+  "version": "1.0.0",
+  "description": "* [Transforms on SVG Elements](https://css-tricks.com/transforms-on-svg-elements/) * [SVG 图像](http://javascript.ruanyifeng.com/htmlapi/svg.html#) * [SVG (basic support)浏览器兼容一览表](http://caniuse.mojijs.com/Home/Html/item/key/svg/index.html) * [一些SVG向下兼容优雅降级技术](http://www.zhangxinxu.com/wordpress/2013/09/svg-fallbacks/)",
+  "main": "jquery-3.1.1.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zuojj/zcharts.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zuojj/zcharts/issues"
+  },
+  "homepage": "https://github.com/zuojj/zcharts#readme",
+  "devDependencies": {
+    "autoprefixer-loader": "^3.2.0",
+    "babel-loader": "^6.2.7",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-stage-3": "^6.17.0",
+    "css-loader": "^0.25.0",
+    "file-loader": "^0.9.0",
+    "sass-loader": "^4.0.2",
+    "style-loader": "^0.13.1",
+    "url-loader": "^0.5.7",
+    "webpack": "^1.13.3"
+  }
+}
