@@ -164,10 +164,9 @@
 
             $container   = $(opts.container);
             me.$svg      = $container.find('svg');
-            me.$toggle   = $container.find('.zcharts-math-toggle');
-            me.$valbox   = $container.find('.zcharts-math-valbox');
-            me.$operator = $container.find('.zcharts-math-operator');
-
+            ['toggle', 'valbox', 'operator', 'legend'].forEach(function(item) {
+                me['$'+ item] = $container.find('.zcharts-math-' + item);
+            });
             ['axis', 'path', 'trace'].forEach(function(item) {
                 frag.appendChild(me[item] = me.createElement('g'));
             });
@@ -616,7 +615,7 @@
                 legends.push('<strong style="color: '+ colors[index]+'">'+ item.legend +'</strong>');
             });
 
-            $('.legends').html(legends.join(' , '));
+            me.$legend.html(legends.join(' , '));
         },
 
         /**
@@ -632,8 +631,6 @@
                 yAxis = opts.yAxis;
 
             grid.zoom = grid.zoom || 1;
-
-            svgFun.scale = 'scale(' + factor +')';
             grid.zoom *= factor;
 
             setTimeout(function() {

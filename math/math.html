@@ -11,23 +11,29 @@
 </head>
 <body>
     <div class="zcharts-math">
-        <div class="zcharts-math-operator">
-            <span class="zoomout" data-index="-1"></span>
-            <span class="zoomin" data-index="1"></span>
+        <div class="zcharts-math-header">
+            函数<span class="zcharts-math-legend"></span>
         </div>
-        <div class="zcharts-math-toggle">
-            <ul class="list"></ul>
-            <div class="arrow-down"><i></i></div>
+        <div class="zcharts-math-body">
+            <div class="zcharts-math-operator">
+                <span class="zoomout" data-index="-1"></span>
+                <span class="zoomin" data-index="1"></span>
+            </div>
+            <div class="zcharts-math-toggle">
+                <ul class="list"></ul>
+                <div class="arrow-down"><i></i></div>
+            </div>
+            <div class="zcharts-math-valbox">
+                <span>x= <em class="xvalue">0</em></span><span>y= <em class="yvalue">0</em></span>
+            </div>
+            <svg width="500" height="250">
+                <g class="zcharts-math-axis"></g>
+                <g class="zcharts-math-path"></g>
+                <g class="zcharts-math-trace"></g>
+            </svg>
         </div>
-        <div class="zcharts-math-valbox">
-            <span>x= <em class="xvalue">0</em></span><span>y= <em class="yvalue">0</em></span>
-        </div>
-        <svg width="500" height="250">
-            <g class="zcharts-math-axis"></g>
-            <g class="zcharts-math-path"></g>
-            <g class="zcharts-math-trace"></g>
-        </svg>
     </div>
+
     <script type="text/javascript" src="../jquery-3.1.1.js"></script>
     <script type="text/javascript" src="math.js"></script>
     <script type="text/javascript">
