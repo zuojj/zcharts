@@ -24,7 +24,7 @@
 
     color: #999;
 }
-.zcharts-line-legend p:before {
+.zcharts-line-legend p i {
     position: absolute;
     top: 4px;
     left: 0;
@@ -35,14 +35,6 @@
     content: '';
 
     border-radius: 50%;
-    background: #ff6949;
-}
-
-.zcharts-line-legend p:nth-of-type(2):before {
-    background: #4b9bf9;
-}
-.zcharts-line-legend p:nth-of-type(3):before {
-    background: #97d48c;
 }
 .zcharts-line-legend .cur {
     color: #333;

@@ -22,7 +22,6 @@
         }
         me.options = $.extend(true, {}, Line.defaults, options, {});
 
-        console.log(me.options);
         me.init();
     }
 
@@ -31,9 +30,6 @@
      * @type {Object}
      */
     Line.defaults = {
-        title: {
-            text: '人口趋势图'
-        },
         legend: {
             data: ["中国","印度","美国"]
         },
@@ -121,13 +117,22 @@
                 opts = me.options,
                 series = opts.series,
                 grid = opts.grid,
-                $container = $(opts.container),
-                $svg = me.$svg = $container.find('svg');
+                frag = me.createFragment(),
+                $container;
 
-            me.$axis = $svg.find('.zcharts-line-axis');
-            me.$path = $svg.find('.zcharts-line-path');
-            me.$trace = $svg.find('.zcharts-line-trace');
+            if(!opts.container) {
+                new Error('config container must be a selector');
+            }
+
+            $container = $(me.options.container);
+            me.$svg = $container.find('svg');
             me.$legend = $container.find('div.zcharts-line-legend');
+            ['axis', 'path', 'trace'].forEach(function(item) {
+                frag.appendChild(me[item] = me.createElement('g'));
+                me['$' + item] = $(me[item]);
+            });
+            me.axis.setAttribute('fill', '#999');
+            me.$svg[0].appendChild(frag);
 
             [opts.xAxis, opts.yAxis].forEach(function(item, index) {
                 var _labels;
@@ -155,7 +160,26 @@
             me.drawAxises();
             me.drawLines();
             me.bindEvents();
-            me.drawLegend();
+            me.drawLegend(true);
+        },
+
+        createFragment: function() {
+            return document.createDocumentFragment();
+        },
+
+        createElement: function(ele, attr) {
+            var ele = document.createElementNS('http://www.w3.org/2000/svg', ele);
+            if(attr) {
+                this.setAttr(ele, attr);
+            }
+            return ele;
+        },
+
+        setAttr: function(ele, attrobj) {
+            for(var name in attrobj) {
+                attrobj.hasOwnProperty(name) && ele.setAttribute(name, attrobj[name]);
+            }
+            return ele;
         },
 
         /**
@@ -168,16 +192,20 @@
                 grid = opts.grid,
                 axises = [];
 
+            me.axis.textContent = '';
             [opts.xAxis, opts.yAxis].forEach(function(item, index) {
                 var min = item.min,
                     max = item.max,
                     unit = item.unit,
                     unitlen = item.unitlen,
                     labels = item.labels,
+                    fragAxis = me.createFragment(),
                     axis = [],
                     x1, y1, x2, y2, tx, ty, text = '';
 
-                axis.push('<g>');
+                var g = me.createElement('g', {
+                    fill: '#999'
+                });
                 labels.forEach(function(value) {
                     if(index == 0) {
                         x1 = x2 = (value - min) * unitlen + grid.left + grid['padding'][3];
@@ -195,13 +223,27 @@
                         text = value == 0 ? 0 : (value + unit);
                     }
 
-                    axis.push('<line x1="'+ x1 +'" y1="'+ y1 +'" x2="'+ x2 +'" y2="'+ y2 +'" line-anchor="middle" stroke="#f2f2f2" stroke-width="1"></line><text x="'+ tx +'" y="'+ ty +'">'+ text +'</text>');
-                });
-                axis.push('</g>');
-                axises.push(axis.join('\n'));
-            });
+                    fragAxis.appendChild(me.createElement('line', {
+                        x1: x1,
+                        y1: y1,
+                        x2: x2,
+                        y2: y2,
+                        stroke: '#f2f2f2',
+                        "stroke-width": 1
+                    }))
 
-            me.$axis.html(axises.join('\n'));
+                    var _t = me.createElement('text', {
+                        x: tx,
+                        y: ty
+                    });
+
+                    _t.textContent = text;
+                    fragAxis.appendChild(_t);
+                });
+
+                g.appendChild(fragAxis);
+                me.axis.appendChild(g);
+            });
         },
 
         /**
@@ -216,6 +258,7 @@
                 series = opts.series,
                 xAxis = opts.xAxis,
                 yAxis = opts.yAxis,
+                fragLines = me.createFragment(),
                 lines = [],
                 result = me.result = {};
 
@@ -250,10 +293,16 @@
                     path.push( x + ',' + y)
                 });
 
-                lines.push('<path stroke-width="'+ width +'" stroke="'+ color +'" d="'+ path.join(' ') +'" opacity="'+ opacity +'" fill="none"></path>');
+                fragLines.appendChild(me.createElement('path', {
+                    "stroke-width": width,
+                    stroke: color,
+                    opacity: opacity,
+                    fill: 'none',
+                    d: path.join(' ')
+                }));
             });
-
-            me.$path.html(lines.join('\n'));
+            me.path.textContent = '';
+            me.path.appendChild(fragLines);
         },
 
         /**
@@ -265,20 +314,33 @@
             var me = this,
                 opts = me.options,
                 grid = opts.grid,
+                fragTrace = me.createFragment(),
                 trace = [];
 
             if(!circles.length) return;
 
             line_x = circles[0]['x'];
 
-            trace.push('<line x1="'+ line_x +'" y1="0" x2="'+ line_x +'" y2="'+ (grid.height - grid.bottom) +'"  line-anchor="middle" stroke="#ddd" stroke-width="1" stroke-dasharray="2,2"></line>');
-
+            fragTrace.appendChild(me.createElement('line', {
+                x1: line_x,
+                y1: 0,
+                x2: line_x,
+                y2: grid.height - grid.bottom,
+                stroke: '#ddd',
+                "stroke-width": 1,
+                "stroke-dasharray": '2,2'
+            }));
             circles.forEach(function(item, index) {
                 var c = item.opacity == 1 ? 'cur' : '';
-                trace.push('<circle r="'+ item.r +'" transform="translate(' + item.x +','+ item.y +')" fill="'+ item.color +'"></circle>');
-            });
 
-            me.$trace.html(trace.join('\n'));
+                fragTrace.appendChild(me.createElement('circle', {
+                    r: item.r,
+                    transform: 'translate(' + item.x +','+ item.y +')',
+                    fill: item.color
+                }));
+            });
+            me.trace.textContent = '';
+            me.trace.appendChild(fragTrace);
         },
 
         /**
@@ -286,7 +348,7 @@
          * @param  {[type]} circles [description]
          * @return {[type]}         [description]
          */
-        drawLegend: function(circles) {
+        drawLegend: function(isInit, circles) {
             var me = this,
                 opts = me.options,
                 grid = opts.grid,
@@ -294,13 +356,19 @@
                 result = me.result,
                 keys = Object.keys(me.result),
                 circles = circles || result[keys[keys.length - 1]],
+                $p = me.$legend.find('p'),
                 legend = [];
 
-            circles.forEach(function(item) {
-                legend.push('<p ' + (item.opacity == 1 && 'class="cur"') + '>'+ item.name +'<br>'+ item.num + yAxis.unit +'<br>('+ item.year +')</p>');
+            circles.forEach(function(item, index ) {
+                if(isInit) {
+                    legend.push('<p ' + (item.opacity == 1 ? 'class="cur"' : '') + '><i style="background-color: '+ item.color +'"></i>'+ item.name +'<br><span class="value">'+ item.num + '</span>' + yAxis.unit +'<br>(<span class="date">'+ item.year +'</span>)</p>');
+                } else {
+                    $p.eq(index).find('.value').text(item.num);
+                    $p.eq(index).find('.date').text(item.year);
+                }
             });
 
-            me.$legend.html(legend.join('\n'));
+            isInit && me.$legend.html(legend.join('\n'));
         },
 
         /**
@@ -322,9 +390,8 @@
                             circles = me.result[offsetX] || '';
 
                         if(!circles.length) return;
-
                         me.drawTrace(circles);
-                        me.drawLegend(circles);
+                        me.drawLegend(false, circles);
                     },
                     mouseout: function() {
                         var $path = me.$path.find('path'),

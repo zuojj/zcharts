@@ -11,15 +11,11 @@
             noop = function() {};
 
         options = options || {};
-
         if(! (me instanceof MathFun) ) {
             return new MathFun(options);
         }
-
         me.options = $.extend(true, {}, MathFun.defaults, options);
-
         me.init();
-
     }
 
     /**
@@ -28,10 +24,13 @@
      */
     MathFun.defaults = {
         container: '',
-        colors: ['#ff5a34', '#4b9bf9', '#97d48c', '#febe44', '#ccc'],
         grid: {
             width: 526,
             height: 248
+        },
+        lineStyle: {
+            width: 1,
+            colors: ['#ff5a34', '#4b9bf9', '#97d48c', '#febe44', '#ccc']
         },
         xAxis: {
             borderWidth: 1,
@@ -153,19 +152,26 @@
     };
 
     MathFun.prototype = {
-
         init: function() {
             var me = this,
                 opts = me.options,
-                $container = $(opts.container);
+                frag = me.createFragment(),
+                $container;
 
+            if(!opts.container) {
+                new Error('config container must be a selector');
+            }
+
+            $container   = $(opts.container);
             me.$svg      = $container.find('svg');
-            me.$axis     = $container.find('.zcharts-math-axis');
-            me.$path     = $container.find('.zcharts-math-path');
-            me.$trace    = $container.find('.zcharts-math-trace');
             me.$toggle   = $container.find('.zcharts-math-toggle');
             me.$valbox   = $container.find('.zcharts-math-valbox');
             me.$operator = $container.find('.zcharts-math-operator');
+
+            ['axis', 'path', 'trace'].forEach(function(item) {
+                frag.appendChild(me[item] = me.createElement('g'));
+            });
+            me.$svg[0].appendChild(frag);
 
             me.drawLegends();
             me.drawCircles();
@@ -173,12 +179,36 @@
             me.draw();
         },
 
+        createFragment: function() {
+            return document.createDocumentFragment();
+        },
+
+        createElement: function(ele, attr) {
+            var ele = document.createElementNS('http://www.w3.org/2000/svg', ele);
+
+            if(attr) {
+                this.setAttr(ele, attr);
+            }
+            return ele;
+        },
+
+        setAttr: function(ele, attrobj) {
+            for(var name in attrobj) {
+                attrobj.hasOwnProperty(name) && ele.setAttribute(name, attrobj[name]);
+            }
+            return ele;
+        },
+
         draw: function() {
             var me = this;
             me.setStep();
             me.drawAxis();
+            me.drawTrace();
         },
 
+        /**
+         * [setStep 计算步长]
+         */
         setStep: function() {
             var opts = this.options,
                 grid   = opts.grid;
@@ -210,6 +240,11 @@
                 item.step = step;
             });
         },
+
+        /**
+         * [drawAxis 绘制坐标轴]
+         * @return {[type]} [description]
+         */
         drawAxis: function() {
             var me     = this,
                 opts   = me.options,
@@ -252,7 +287,7 @@
                 ty = y + 18;
             }
 
-            var htmlAxises = [];
+            me.axis.textContent = '';
             [xAxis, yAxis].forEach(function(item, index) {
                 var step = item.step,
                     scale_2 = (item.scaleStyle.len - item.borderWidth) / 2,
@@ -264,17 +299,15 @@
 
                         return parseFloat(Math.round(text * exp10) / exp10);
                     },
-                    _axises = [],
-                    axisArr = [],
-                    texts = [],
+                    fragTexts = me.createFragment(),
+                    fragAxis = me.createFragment(),
                     grids = [],
                     scales = [],
                     shortScales = [],
                     jump = 5,
-                    text,
+                    text, ele,
                     x1, x2, y1, y2,
                     sx1, sx2, sy1, sy2,
-                    gx1, gx2, gy1, gy2,
                     rectx, recty;
 
                 if(index == 0) {
@@ -293,21 +326,19 @@
                             x1 = x2 = (i - min) / (max - min) * item.width - width;
                             y1 = y - scale_2;
                             y2 = y + scale_2;
+
                             scales.push('M' + x1 + ',' + y1 + ' L' + x2 + ',' + y2);
-
-                            // grid
-                            if(grid.show) {
-                                gx1 = gx2 = x1;
-                                gy1 = 0 - height;
-                                gy2 = height * 2;
-
-                                grid.show && grids.push('M' + gx1 + ',' + gy1 + ' L' + gx2 + ',' + gy2);
-                            }
 
                             // text
                             text = textFormat(i);
-
-                            texts.push('<text text-anchor="middle" x="'+ x1 +'" y="'+ ty +'">'+ (text != 0 ? text : '') +'</text>');
+                            ele = me.createElement('text');
+                            me.setAttr(ele, {
+                                x: x1,
+                                y: ty,
+                                "text-anchor": 'middle'
+                            });
+                            ele.textContent = text != 0 ? text : '';
+                            fragTexts.appendChild(ele);
                         }
                         jump ++;
                     }
@@ -339,33 +370,62 @@
 
                             // text
                             text = textFormat(i);
-                            texts.push('<text text-anchor="'+ yta +'" x="'+ tx +'" y="'+ (y1 + 5) +'">'+ (text != 0 ? text : '') +'</text>')
+                            text = textFormat(i);
+                            ele = me.createElement('text');
+
+                            me.setAttr(ele, {
+                                x: tx,
+                                y: y1 + 5,
+                                "text-anchor": yta
+                            });
+                            ele.textContent = text != 0 ? text : '';
+                            fragTexts.appendChild(ele);
                         }
 
                         jump ++;
                     }
                 }
 
-                _axises.push('<g>');
-                _axises.push([
-                    '<rect x="'+ rectx +'" y="'+ recty +'" width="'+ item.width +'" height="'+ item.height +'" fill="'+ item.color +'"></rect>',
-                    '<path stroke-width="'+ item.scaleStyle.border +'" stroke="'+ item.scaleStyle.color +'" d="'+ scales.join(' ') +'"></path>',
-                    '<path stroke-width="'+item.scaleStyle.border+'" stroke="'+ item.scaleStyle.shortScaleColor +'" d="'+ shortScales.join(' ') +'"></path>'
-                ].concat(['<g>' + texts.join('\n') + '</g>']));
-                _axises.push('</g>');
+                var g = me.createElement('g');
+                    gt = me.createElement('g', {
+                        fill: item.textStyle.color
+                    });
 
-                htmlAxises.push(_axises.join('\n'));
+                gt.appendChild(fragTexts);
+                fragAxis.appendChild(gt);
+                fragAxis.appendChild(me.createElement('rect', {
+                    x: rectx,
+                    y: recty,
+                    width: item.width,
+                    height: item.height,
+                    fill: item.color
+                }));
+                fragAxis.appendChild(me.createElement('path', {
+                    "stroke-width": item.scaleStyle.border,
+                    stroke: item.scaleStyle.color,
+                    d: scales.join(' ')
+                }));
+                fragAxis.appendChild(me.createElement('path', {
+                    "stroke-width": item.scaleStyle.border,
+                    stroke: item.scaleStyle.shortScaleColor,
+                    d: shortScales.join(' ')
+                }));
+
+                g.appendChild(fragAxis);
+
+                me.axis.appendChild(g);
             });
-
-            me.$axis.html(htmlAxises.join('\n'));
-            me.drawTrace();
-            me.drawFunction();
+            me.drawLines();
         },
 
-        drawFunction: function() {
+        /**
+         * [drawLines 绘制曲线]
+         * @return {[type]} [description]
+         */
+        drawLines: function() {
             var me = this,
                 opts = me.options,
-                colors = opts.colors,
+                colors = opts.lineStyle.colors,
                 series = opts.series,
                 grid = opts.grid,
                 xAxis = opts.xAxis,
@@ -381,7 +441,8 @@
                 ymax = yAxis.amax,
                 xstep = xAxis.step,
                 ystep = yAxis.step,
-                px, py, x, y, htmlPaths = [];
+                fragPath = me.createFragment(),
+                px, py, x, y;
 
             series && series.length && series.forEach(function(item, index) {
                 var path = [],
@@ -420,45 +481,28 @@
 
                 path[0] && path[0].indexOf('M') < 0 &&  path.unshift('M');
 
-                htmlPaths.push('<path stroke="'+ colors[index] +'" stroke-width="'+ 1.5 +'" fill="none" d="'+ path.join(' ') +'"></path>');
+                fragPath.appendChild(me.createElement('path', {
+                    stroke: colors[index],
+                    "stroke-width": 1.5,
+                    fill: 'none',
+                    d: path.join(' ')
+                }));
             });
 
-            me.$path.html(htmlPaths.join('\n'));
+            me.path.textContent = '';
+            me.path.appendChild(fragPath);
         },
 
-        drawZoom: function(factor) {
-            var me = this,
-                opts = me.options,
-                grid = opts.grid,
-                xAxis = opts.xAxis,
-                yAxis = opts.yAxis;
-
-            grid.zoom = grid.zoom || 1;
-
-            svgFun.scale = 'scale(' + factor +')';
-            grid.zoom *= factor;
-
-            setTimeout(function() {
-                var cx = (xAxis.max + xAxis.min) / 2,
-                    cy = (yAxis.max + yAxis.min) / 2;
-
-                xAxis.max = (xAxis.max - cx) / grid.zoom + cx;
-                xAxis.min = (xAxis.min - cx) / grid.zoom + cx;
-
-                yAxis.max = (yAxis.max - cy) / grid.zoom + cy;
-                yAxis.min = (yAxis.min - cy) / grid.zoom + cy;
-
-                grid.zoom = 1;
-
-                me.draw();
-            }, 300);
-        },
-
+        /**
+         * [drawTrace 绘制Trace]
+         * @param  {[type]} offsetX [description]
+         * @return {[type]}         [description]
+         */
         drawTrace: function(offsetX) {
             var me = this,
                 opts = this.options,
                 series = opts.series,
-                colors = opts.colors,
+                colors = opts.lineStyle.colors,
                 grid = opts.grid,
                 xAxis = opts.xAxis,
                 yAxis = opts.yAxis,
@@ -478,7 +522,10 @@
                         sup = '',
                         int = parseInt(val),
                         int = Math.abs(int),
-                        num = parseInt(Math.log10(int));
+                        log10 = Math.log10 || function() {
+                            return Math.log(x) * Math.LOG10E;
+                        },
+                        num = parseInt(log10(int));
 
                     if(num > temp) {
                         val = val / Math.pow(10, num);
@@ -517,16 +564,26 @@
                 py = (ymax - y) / (ymax - ymin) * height - grid.height;
             }
 
-            me.$trace.html('<circle r="3.5" fill="'+ colors[selected] +'" cx="'+ offsetX +'" cy="'+ (isFinite(py) ? py : 0) +'"></circle>');
+            me.trace.textContent = '';
+            me.trace.appendChild(me.createElement('circle', {
+                r: 3.5,
+                fill: colors[selected],
+                cx: offsetX,
+                cy: isFinite(py) ? py : 0
+            }))
             me.$valbox.find('.xvalue').html(_format(x))
             me.$valbox.find('.yvalue').html(_format(y))
         },
 
+        /**
+         * [drawCircles 绘制circle List]
+         * @return {[type]} [description]
+         */
         drawCircles: function() {
             var me = this,
                 opts = me.options,
                 series = opts.series,
-                colors = opts.colors,
+                colors = opts.lineStyle.colors,
                 html = [];
 
             if(series.length < 2) {
@@ -537,18 +594,22 @@
                 me.$toggle.show();
                 series.forEach(function(item, index) {
                     var c = item.selected ? 'cur' : '';
-                    html.push('<li data-index="'+index+'" class="'+ c +'"><i style="background-color: '+ colors[index]+'">·</i></li>');
+                    html.push('<li data-index="'+index+'" class="'+ c +'"><i style="background-color: '+ colors[index]+'"></i></li>');
                 });
 
                 me.$toggle.find('.list').html(html.join('\n'));
             }
         },
 
+        /**
+         * [drawLegends 绘制图例]
+         * @return {[type]} [description]
+         */
         drawLegends: function() {
             var me = this,
                 opts = me.options,
                 series = opts.series,
-                colors = opts.colors,
+                colors = opts.lineStyle.colors,
                 legends = [];
 
             series.forEach(function(item, index) {
@@ -558,6 +619,43 @@
             $('.legends').html(legends.join(' , '));
         },
 
+        /**
+         * [zoom 缩放]
+         * @param  {Number} factor [缩放因子]
+         * @return {[type]}        [description]
+         */
+        zoom: function(factor) {
+            var me = this,
+                opts = me.options,
+                grid = opts.grid,
+                xAxis = opts.xAxis,
+                yAxis = opts.yAxis;
+
+            grid.zoom = grid.zoom || 1;
+
+            svgFun.scale = 'scale(' + factor +')';
+            grid.zoom *= factor;
+
+            setTimeout(function() {
+                var cx = (xAxis.max + xAxis.min) / 2,
+                    cy = (yAxis.max + yAxis.min) / 2;
+
+                xAxis.max = (xAxis.max - cx) / grid.zoom + cx;
+                xAxis.min = (xAxis.min - cx) / grid.zoom + cx;
+
+                yAxis.max = (yAxis.max - cy) / grid.zoom + cy;
+                yAxis.min = (yAxis.min - cy) / grid.zoom + cy;
+
+                grid.zoom = 1;
+
+                me.draw();
+            }, 200);
+        },
+
+        /**
+         * [bindEvents 绑定事件]
+         * @return {[type]} [description]
+         */
         bindEvents: function() {
             var me = this,
                 opts = me.options,
@@ -598,8 +696,10 @@
 
                             setTimeout(function() {
                                 me.drawAxis();
-                                $('.zcharts-math-axis, .zcharts-math-path, .zcharts-math-trace').attr('transform', 'translate(0,0)');
-                            }, 200);
+                                [me.axis, me.path, me.trace].forEach(function(item) {
+                                    item.setAttribute('transform', 'translate(0,0)');
+                                });
+                            }, 400);
                         }
                     },
 
@@ -618,8 +718,9 @@
 
                             grid.translateX = offsetX - grid.offsetX;
                             grid.translateY = offsetY - grid.offsetY;
-
-                            $('.zcharts-math-axis, .zcharts-math-path, .zcharts-math-trace').attr('transform', 'translate('+ grid.translateX +', ' + grid.translateY+')')
+                            [me.axis, me.path, me.trace].forEach(function(item) {
+                                item.setAttribute('transform', 'translate('+ grid.translateX +', ' + grid.translateY+')');
+                            });
                         }else {
                             me.drawTrace(e.offsetX);
                         }
@@ -627,7 +728,7 @@
 
                     mousewheel: function(e) {
                         var zoom = e.originalEvent.wheelDelta > 0 ? 1.25 : 0.8;
-                        me.drawZoom(zoom);
+                        me.zoom(zoom);
                         e.stopPropagation();
                         e.preventDefault();
                     }
@@ -641,7 +742,7 @@
 
             me.$operator.on('click', function(e) {
                 var index = $(e.target).data('index');
-                me.drawZoom(index == 1 ? 1.25 : 0.8);
+                me.zoom(index == 1 ? 1.25 : 0.8);
 
                 return false;
             });
