@@ -35,8 +35,8 @@
         xAxis: {
             borderWidth: 1,
             color: '#e7e7e7',
-            min: -8,
-            max: 8,
+            min: -8.5,
+            max: 8.5,
             scaleStyle: {
                 len: 7,
                 color: '#bbb',
@@ -89,6 +89,17 @@
         cosh: Math.cosh,
         tan: Math.tan,
         tanh: Math.tanh,
+        e: Math.E,
+        exp: Math.exp,
+        ln: function(x) {
+            return Math.log(x);
+        },
+        lg: function(x) {
+            return Math.log(x) / Math.log(2);
+        },
+        log: function(x) {
+            return Math.log(x) / Math.log(10);
+        },
         sec: function(x) {
             return 1 / Math.cos(x);
         },
@@ -104,15 +115,11 @@
         acsc: function(x) {
             return Math.asin(1 / x);
         },
+        atan: Math.atan,
         acot: function(x) {
             return Math.atan(1 / x);
         },
-        ln: function(x) {
-            return Math.log(x);
-        },
-        log: function(x) {
-            return Math.log(x) / Math.log(10);
-        },
+
         sinh: function(x) {
             return (Math.exp(x) - Math.exp(-x)) / 2;
         },
@@ -122,6 +129,16 @@
         tanh: function(x) {
             return (Math.exp(x) - Math.exp(-x)) / (Math.exp(x) + Math.exp(-x));
         },
+        coth: function(x) {
+            return (Math.exp(x) + Math.exp(-x)) / (Math.exp(x) - Math.exp(-x));
+        },
+        sech: function(x) {
+            return 2 / (Math.exp(x) + Math.exp(-x));
+        },
+        csch: function(x) {
+            return 2 / (Math.exp(x) - Math.exp(-x));
+        },
+
         asinh: function(x) {
             return Math.log(x + Math.sqrt(x * x + 1));
         },
@@ -131,45 +148,176 @@
         atanh: function(x) {
             return 0.5 * Math.log((1 + x) / (1 - x));
         },
-        sech: function(x) {
-            return 2 / (Math.exp(x) + Math.exp(-x));
-        },
-        csch: function(x) {
-            return 2 / (Math.exp(x) - Math.exp(-x));
-        },
-        coth: function(x) {
-            return (Math.exp(x) + Math.exp(-x)) / (Math.exp(x) - Math.exp(-x));
+        acoth: function(x) {
+            return 0.5 * Math.log((1 + x) / (1 - x));
         },
         asech: function(x) {
             return Math.log(1 / x + Math.sqrt(1 / x / x - 1));
         },
         acsch: function(x) {
             return Math.log(1 / x + Math.sqrt(1 / x / x + 1));
+        }
+    };
+
+    var Parser = {
+        /**
+         * [parserExp 解析指数]
+         * @param  {[type]} items [description]
+         * @return {[type]}       [description]
+         */
+        parserExp: function(items) {
+            for(var i = 1, ilen = items.length; i < ilen - 1; i++) {
+                var _t = i,
+                    isHas = false,
+                    item = items[i],
+                    before = i - 1,
+                    after = i + 1;
+
+                if(item === '^') {
+                    if(items[after] === '-') {
+                        after = after + 1;
+                    }
+                    var _items = items.splice(i + 1, after - i);
+                    items.splice(i - 1, 2, ['Math.pow', '(', items[before], ',', _items.join(''), ')'].join('') );
+                    i -= 2;
+                }
+            }
+            return items;
         },
-        acoth: function(x) {
-            return 0.5 * Math.log((1 + x) / (1 - x));
+
+        /**
+         * [parserBracket 解析]
+         * @param  {[type]} items [description]
+         * @return {[type]}       [description]
+         */
+        parserBracket: function(items) {
+            // 增加括号匹配及合法性判断
+            
+            if(items.indexOf('(') >= 0) {
+                var before = 0;
+                for(var i = 0, ilen = items.length; i < ilen; i++) {
+                    var item = items[i];
+                    if(item === '(') {
+                        before = i;
+                    }else if(item === ')') {
+                        var _items = items.splice(before, i - before + 1);
+
+                        _items = this.parserExp(_items).join('');
+
+                        if(before - 1 < 0) {
+                            items.unshift(_items);
+                        }else {
+                            items.splice(before - 1, 1, items[before - 1], _items);
+                        }
+                        items = this.parserBracket(items);
+                    }
+                }
+            }else {
+                items = this.parserExp(items);
+            }
+
+            return items;
+        },
+
+        /**
+         * [parser 解析value]
+         * @param  {[type]} value [description]
+         * @return {[type]}       [description]
+         */
+        parser: function(value) {
+            var me = this,
+                series = [];
+
+            if(!value) return;
+
+            value = value
+            .replace(/\s+/g, '')
+            // 2sin(2x) => 2*sin(2*x)
+            .replace(/([0-9]+)([a-z]|[A-Z]|\()/ig, "$1*$2")
+            // sin(x)2 => sin(x)*2
+            .replace(/(\))(\w|\()/ig, "$1*$2")
+            // 2*sin(x) => 2 *sin(x)
+            .replace(/([a-z0-9\.])([^a-z0-9\.])/ig, "$1 $2")
+            // sin(x)*2 => sin(x)* 2
+            .replace(/([^a-z0-9\.])([a-z0-9\.])/ig, "$1 $2")
+            // sin(x +2)^2 => sin(x +2 ) ^ 2
+            .replace(/(\-|\)|\()/g, " $1 ");
+
+            values = value.split(/\s,|，/);
+
+            values.forEach(function(value, index) {
+                var items = value.split(/\s+/),
+                    obj = {};
+
+                items = items.map(function(item) {
+                    item = item.toLowerCase().trim();
+                    if(item === 'e') {
+                        item = '(Math.E)'
+                    }
+                    return item;
+                }).filter(function(item) {
+                    return item && item.length > 0;
+                });
+
+                items = me.parserBracket(items);
+
+                items = items.map(function(item) {
+                    item = item.replace(/^\s+.+\s+$/, '');
+                    item = MathFun.math[item] ? ('ZCharts.math.math.' + item) : item;
+                    return item;
+                });
+
+                series.push({
+                    javascript: items.join(''),
+                    selected: index == 0,
+                    legend: value.replace(/\s*/g, '')
+                });
+            });
+
+            return series;
         }
     };
 
     MathFun.prototype = {
+        /**
+         * [init 初始化]
+         * @return {[type]} [description]
+         */
         init: function() {
             var me = this,
                 opts = me.options,
+                grid = opts.grid,
+                series = opts.series,
                 frag = me.createFragment(),
                 $container;
 
             if(!opts.container) {
-                new Error('config container must be a selector');
+                new Error('Config container must be a selector');
             }
 
-            $container   = $(opts.container);
-            me.$svg      = $container.find('svg');
+            if(!series || !series.length) return;
+
+            if(typeof series === 'string') {
+                opts.series = Parser.parser(series);
+            }
+
+            me.optimizeMinMax();
+
+            $container = $(opts.container);
+            me.$svg = $container.find('svg').attr({
+                width: grid.width,
+                height: grid.height
+            }).html('');
+
             ['toggle', 'valbox', 'operator', 'legend'].forEach(function(item) {
                 me['$'+ item] = $container.find('.zcharts-math-' + item);
             });
+
             ['axis', 'path', 'trace'].forEach(function(item) {
                 frag.appendChild(me[item] = me.createElement('g'));
+                me[item].style.cssText = 'pointer-events: none;';
             });
+
             me.$svg[0].appendChild(frag);
 
             me.drawLegends();
@@ -178,10 +326,21 @@
             me.draw();
         },
 
+
+        /**
+         * [createFragment 创建DOM片段]
+         * @return {[type]} [description]
+         */
         createFragment: function() {
             return document.createDocumentFragment();
         },
 
+        /**
+         * [createElement 创建SVG DOM]
+         * @param  {[type]} ele  [description]
+         * @param  {[type]} attr [description]
+         * @return {[type]}      [description]
+         */
         createElement: function(ele, attr) {
             var ele = document.createElementNS('http://www.w3.org/2000/svg', ele);
 
@@ -191,6 +350,11 @@
             return ele;
         },
 
+        /**
+         * [setAttr description]
+         * @param {[type]} ele     [description]
+         * @param {[type]} attrobj [description]
+         */
         setAttr: function(ele, attrobj) {
             for(var name in attrobj) {
                 attrobj.hasOwnProperty(name) && ele.setAttribute(name, attrobj[name]);
@@ -198,6 +362,10 @@
             return ele;
         },
 
+        /**
+         * [draw 绘制]
+         * @return {[type]} [description]
+         */
         draw: function() {
             var me = this;
             me.setStep();
@@ -206,28 +374,73 @@
         },
 
         /**
+         * [optimizeMinMax 优化最大值和最小值]
+         * @return {[type]} [description]
+         */
+        optimizeMinMax: function() {
+            var me = this,
+                opts = me.options,
+                series = opts.series,
+                xAxis = opts.xAxis,
+                yAxis = opts.yAxis,
+                xmin = xAxis.min,
+                xmax = xAxis.max,
+                ymin = yAxis.min,
+                ymax = yAxis.max,
+                isExp = false,
+                _ymin = 0,
+                _ymax = 0;
+
+            series.forEach(function(item) {
+                var arr = [],
+                    javascript = item.javascript,
+                    legend = item.legend;
+
+                !isExp && (isExp = /x\^(?:[2-9]|[1-9]\d+)/.test(legend));
+                eval('item.__callback = function(x) {return '+ javascript +'}');
+
+                for(var x = xmin; x <= xmax; x += 0.2) {
+                    var y = item.__callback(x);
+                    isFinite(y) && arr.push(y);
+                }
+
+                _ymin = Math.min(_ymin, Math.min.apply(Math, arr));
+                _ymax = Math.max(_ymax, Math.max.apply(Math, arr));
+            });
+
+            if(isExp) {
+                yAxis.min = _ymin;
+                yAxis.max = _ymax;
+            }
+
+            delete me.__callback;
+        },
+
+        /**
          * [setStep 计算步长]
          */
         setStep: function() {
             var opts = this.options,
-                grid   = opts.grid;
+                grid  = opts.grid,
+                log10 = Math.log10 || function() {
+                    return Math.log(x) * Math.LOG10E;
+                };
 
             [opts.xAxis, opts.yAxis].forEach(function(item, index) {
                 var min = item.min,
                     max = item.max,
+                    dis = max - min,
                     wh = ['width', 'height'][index],
                     hw = ['height', 'width'][index],
                     full, order, rem, step;
 
-                full  = Math.log(max - min) / Math.log(10) - 0.8;
+                full  = Math.log(dis) / Math.log(10) - 0.8;
                 order = Math.floor(full);
                 rem   = full - order;
                 step  = Math.pow(10, order);
 
-                if(rem > .7) {
+                if(rem > .5) {
                     step *= 5;
-                }else if(rem > .5) {
-                    step *= 3;
                 }else if(rem > .3){
                     step *= 2;
                 }
@@ -344,16 +557,13 @@
                 }else {
                     rectx = x;
                     recty = 0 - height;
-
                     for(var i = Math.ceil(min / step) * step; i <= max; i += step / 5) {
-                        if(i == 0) continue;
                         sx1 = x - shortScale_2;
                         sx2 = x + shortScale_2;
                         sy1 = sy2 = (1 - (i - min) / (max - min)) * item.height - height;
                         shortScales.push('M' + sx1 + ',' + sy1 + ' L' + sx2 + ',' + sy2);
 
                         if(jump % 5 == 0) {
-
                             // scale
                             x1 = x - scale_2;
                             x2 = x + scale_2;
@@ -368,10 +578,8 @@
                             }
 
                             // text
-                            text = textFormat(i);
-                            text = textFormat(i);
+                            text = Math.abs(i) >= Math.pow(10, 4) ? me.formatText(i) : textFormat(i);
                             ele = me.createElement('text');
-
                             me.setAttr(ele, {
                                 x: tx,
                                 y: y1 + 5,
@@ -441,28 +649,42 @@
                 xstep = xAxis.step,
                 ystep = yAxis.step,
                 fragPath = me.createFragment(),
+                isExp = false,
+                translateY = [],
+                translateYTop = 125,
+                translateYBottom = 220,
                 px, py, x, y;
 
             series && series.length && series.forEach(function(item, index) {
                 var path = [],
+
                     pxstep = xdis > 50 ? xdis > 200 ? 0.05 : 0.1 : 1,
                     javascript = item.javascript;
 
+                isExp = javascript.indexOf('^') > 0;
+
                 eval('item.function = function(x) {return '+ javascript +'}');
 
-                if('function' !== typeof item.function) return;
+                // 原点值判断
+                (function() {
+                    var y = item.function(0);
+
+                    if(isFinite(y)) {
+                        py = (ymax - y) / (ymax - ymin) * height - grid.height;
+                        translateY.push(py);
+                    }
+                })();
 
                 for(var i = 0; i <= width; i += pxstep) {
                     x = (i / width) * xdis + xmin;
+                    if(isNaN(x)) continue;
                     y = item.function(x);
-
                     px = i - grid.width;
                     if(!isNaN(y)){
                         py = (ymax - y) / (ymax - ymin) * height - grid.height;
                     }else {
                         continue;
                     }
-
                     if(isFinite(y)) {
                         if(py > gHeight * 2 ) {
                             py = gHeight * 2;
@@ -475,11 +697,11 @@
                         continue;
                     }
 
+                    if(isNaN(py)) continue;
+
                     path.push(px.toFixed(1) + ',' + py.toFixed(1));
                 }
-
                 path[0] && path[0].indexOf('M') < 0 &&  path.unshift('M');
-
                 fragPath.appendChild(me.createElement('path', {
                     stroke: colors[index],
                     "stroke-width": 1.5,
@@ -490,6 +712,47 @@
 
             me.path.textContent = '';
             me.path.appendChild(fragPath);
+
+            translateY = parseInt(Math.min.apply(Math, translateY));
+            if(translateY > translateYBottom) {
+                me.translate(0, translateYBottom - translateY, 1);
+            }else if(translateY < 0) {
+                me.translate(0, 0 - translateY + translateYTop, 1);
+            }
+        },
+
+        /**
+         * [formatText description]
+         * @param  {Number} val [格式化value]
+         * @param  {Number} len [总长度]
+         * @param  {Number} tmp [临界长度， 4 => x >= Math.pow(10, 4)]
+         * @return {[type]}     [description]
+         */
+        formatText: function(val, len, tmp) {
+            var supArr = '\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079'.split(''),
+                len = len || 9,
+                tmp = tmp || 4,
+                sup = '',
+                int = parseInt(val),
+                int = Math.abs(int),
+                log10 = Math.log10 || function() {
+                    return Math.log(x) * Math.LOG10E;
+                },
+                num = parseInt(log10(int));
+
+            if(num >= tmp) {
+                val = val / Math.pow(10, num);
+                val = val.toString().substr(0, len - 4);
+                num = num.toString().split('');
+                num.map(function(item) {
+                    sup += supArr[item]
+                });
+                val += '\u00d710' + sup;
+            }else {
+                val = val.toString().substr(0, len);
+            }
+
+            return val;
         },
 
         /**
@@ -514,35 +777,11 @@
                 selected = 0,
                 callback,
                 result = [],
-                _format = function(val) {
-                    var supArr = '\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079'.split(''),
-                        len = 9,
-                        temp = 3,
-                        sup = '',
-                        int = parseInt(val),
-                        int = Math.abs(int),
-                        log10 = Math.log10 || function() {
-                            return Math.log(x) * Math.LOG10E;
-                        },
-                        num = parseInt(log10(int));
 
-                    if(num > temp) {
-                        val = val / Math.pow(10, num);
-                        val = val.toString().substr(0, len - 4);
-                        num = num.toString().split('');
-                        num.map(function(item) {
-                            sup += supArr[item]
-                        });
-                        val += '\u00d710' + sup;
-                    }else {
-                        val = val.toString().substr(0, len);
-                    }
-
-                    return val;
-                },
                 callback,px, py, x, y;
 
             offsetX = offsetX || 400;
+
             if(!series.length) return;
 
             series.forEach(function(item, index) {
@@ -555,12 +794,13 @@
 
             if('function' !== typeof callback) return;
 
-            // 暂时只显示一条
             x = ( (offsetX + grid.width) / width) * (xmax - xmin) + xmin;
             y = callback(x);
 
             if(!isNaN(y)){
                 py = (ymax - y) / (ymax - ymin) * height - grid.height;
+            }else {
+                return;
             }
 
             me.trace.textContent = '';
@@ -570,8 +810,8 @@
                 cx: offsetX,
                 cy: isFinite(py) ? py : 0
             }))
-            me.$valbox.find('.xvalue').html(_format(x))
-            me.$valbox.find('.yvalue').html(_format(y))
+            me.$valbox.find('.xvalue').html(me.formatText(x))
+            me.$valbox.find('.yvalue').html(me.formatText(y))
         },
 
         /**
@@ -650,59 +890,69 @@
         },
 
         /**
+         * [translate 处理偏移]
+         * @param  {[type]} translateX [description]
+         * @param  {[type]} translateY [description]
+         * @param  {[type]} duration   [description]
+         * @return {[type]}            [description]
+         */
+        translate: function(translateX, translateY, duration) {
+            var me = this,
+                opts = me.options,
+                grid   = opts.grid,
+                xAxis  = opts.xAxis,
+                yAxis  = opts.yAxis;
+            var x = (translateX || 0) / xAxis.width * (xAxis.amax - xAxis.amin),
+                y = (translateY || 0) / yAxis.height * (yAxis.amax - yAxis.amin);
+
+            x = isNaN(x) ? 0 : x;
+            y = isNaN(y) ? 0 : y;
+
+            xAxis.amin -= x;
+            xAxis.amax -= x;
+            yAxis.amin += y;
+            yAxis.amax += y;
+
+            setTimeout(function() {
+                me.drawAxis();
+                [me.axis, me.path].forEach(function(item) {
+                    item.setAttribute('transform', 'translate(0,0)');
+                });
+                $(me.trace).show();
+            }, duration || 400);
+        },
+
+        /**
          * [bindEvents 绑定事件]
          * @return {[type]} [description]
          */
         bindEvents: function() {
             var me = this,
                 opts = me.options,
+                grid = opts.grid,
                 eventObj = {
                     mouseover: function(e) {
-                        var grid = opts.grid;
                         grid.isMouseDown = false;
                     },
 
                     mousedown: function(e) {
-                        var grid = opts.grid;
-
                         if(!grid.isMouseDown) {
                             grid.offsetX = e.offsetX;
                             grid.offsetY = e.offsetY;
                             grid.isMouseDown = true;
+                            $(me.trace).hide();
                         }
                     },
 
                     mouseup: function(e) {
-                        var grid   = opts.grid,
-                            xAxis  = opts.xAxis,
-                            yAxis  = opts.yAxis;
-
                         if(grid.isMouseDown) {
                             grid.isMouseDown = false;
-
-                            var x = (grid.translateX || 0) / xAxis.width * (xAxis.amax - xAxis.amin),
-                                y = (grid.translateY || 0) / yAxis.height * (yAxis.amax - yAxis.amin);
-
-                            x = isNaN(x) ? 0 : x;
-                            y = isNaN(y) ? 0 : y;
-
-                            xAxis.amin -= x;
-                            xAxis.amax -= x;
-                            yAxis.amin += y;
-                            yAxis.amax += y;
-
-                            setTimeout(function() {
-                                me.drawAxis();
-                                [me.axis, me.path, me.trace].forEach(function(item) {
-                                    item.setAttribute('transform', 'translate(0,0)');
-                                });
-                            }, 400);
+                            me.translate(grid.translateX, grid.translateY);
                         }
                     },
 
                     mousemove: function(e) {
                         var $this = $(this),
-                            grid = opts.grid,
                             width = grid.width,
                             height = grid.height,
                             tagname = e.target.tagName,
@@ -711,15 +961,19 @@
 
                         if(grid.isMouseDown) {
                             offsetX = offsetX <= 0 ? 1 : offsetX >= width ? width : offsetX;
-                            offsetY = offsetY <= 0 ? 1 : offsetY >= width ? width : offsetY;
+                            offsetY = offsetY <= 0 ? 1 : offsetY >= height ? height : offsetY;
+
 
                             grid.translateX = offsetX - grid.offsetX;
                             grid.translateY = offsetY - grid.offsetY;
-                            [me.axis, me.path, me.trace].forEach(function(item) {
+                            [me.axis, me.path].forEach(function(item) {
                                 item.setAttribute('transform', 'translate('+ grid.translateX +', ' + grid.translateY+')');
                             });
+                            if(offsetX <= 0 || offsetX >= width || offsetY <= 0 || offsetY >= height ) {
+                                $this.trigger('mouseup');
+                            }
                         }else {
-                            me.drawTrace(e.offsetX);
+                            me.drawTrace(offsetX);
                         }
                     },
 
