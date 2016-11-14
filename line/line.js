@@ -125,13 +125,17 @@
             }
 
             $container = $(me.options.container);
-            me.$svg = $container.find('svg');
+            me.$svg = $container.find('svg').attr({
+                width: grid.width,
+                height: grid.height
+            });
             me.$legend = $container.find('div.zcharts-line-legend');
             ['axis', 'path', 'trace'].forEach(function(item) {
                 frag.appendChild(me[item] = me.createElement('g'));
                 me['$' + item] = $(me[item]);
             });
             me.axis.setAttribute('fill', '#999');
+	    me.$svg[0].textContent = '';
             me.$svg[0].appendChild(frag);
 
             [opts.xAxis, opts.yAxis].forEach(function(item, index) {

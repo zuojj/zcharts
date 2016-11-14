@@ -307,7 +307,8 @@
             me.$svg = $container.find('svg').attr({
                 width: grid.width,
                 height: grid.height
-            }).html('');
+            });
+            me.$svg[0].textContent = '';
 
             ['toggle', 'valbox', 'operator', 'legend'].forEach(function(item) {
                 me['$'+ item] = $container.find('.zcharts-math-' + item);
@@ -422,7 +423,7 @@
         setStep: function() {
             var opts = this.options,
                 grid  = opts.grid,
-                log10 = Math.log10 || function() {
+                log10 = Math.log10 || function(x) {
                     return Math.log(x) * Math.LOG10E;
                 };
 
@@ -542,7 +543,7 @@
                             scales.push('M' + x1 + ',' + y1 + ' L' + x2 + ',' + y2);
 
                             // text
-                            text = textFormat(i);
+                            text = Math.abs(i) >= Math.pow(10, 4) ? me.formatText(i) : textFormat(i);
                             ele = me.createElement('text');
                             me.setAttr(ele, {
                                 x: x1,
@@ -735,7 +736,7 @@
                 sup = '',
                 int = parseInt(val),
                 int = Math.abs(int),
-                log10 = Math.log10 || function() {
+                log10 = Math.log10 || function(x) {
                     return Math.log(x) * Math.LOG10E;
                 },
                 num = parseInt(log10(int));
