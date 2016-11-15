@@ -1,7 +1,7 @@
 .zcharts-math {
     width: 526px;
     margin: 40px auto;
-
+    font-family: arial,simsun;
     box-shadow: 0 0 1px 1px #ccc;
 }
 
@@ -191,12 +191,6 @@
 
     color: #ff5a34;
     background-color: #fff;
-}
-
-.zcharts-math-valbox em {
-    font-style: normal;
-
-    color: #ff5a34;
 }
 
 .zcharts-math-valbox span {

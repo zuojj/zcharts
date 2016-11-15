@@ -81,7 +81,7 @@
         pi: Math.PI,
         abs: Math.abs,
         arcsin: Math.asin,
-        arcos: Math.acos,
+        arccos: Math.acos,
         arctan: Math.atan,
         sin: Math.sin,
         sinh: Math.sinh,
@@ -91,14 +91,15 @@
         tanh: Math.tanh,
         e: Math.E,
         exp: Math.exp,
+        sqrt: Math.sqrt,
         ln: function(x) {
             return Math.log(x);
         },
-        lg: function(x) {
-            return Math.log(x) / Math.log(2);
-        },
         log: function(x) {
-            return Math.log(x) / Math.log(10);
+            return Math.log(x) * Math.LOG2E;
+        },
+        lg: function(x) {
+            return Math.log(x) * Math.LOG10E;
         },
         sec: function(x) {
             return 1 / Math.cos(x);
@@ -112,14 +113,22 @@
         asec: function(x) {
             return Math.acos(1 / x);
         },
+        arcsec: function(x) {
+            return Math.acos(1 / x);
+        },
         acsc: function(x) {
+            return Math.asin(1 / x);
+        },
+        arccsc: function(x) {
             return Math.asin(1 / x);
         },
         atan: Math.atan,
         acot: function(x) {
             return Math.atan(1 / x);
         },
-
+        arccot: function(x) {
+            return Math.atan(1 / x);
+        },
         sinh: function(x) {
             return (Math.exp(x) - Math.exp(-x)) / 2;
         },
@@ -167,17 +176,21 @@
          */
         parserExp: function(items) {
             for(var i = 1, ilen = items.length; i < ilen - 1; i++) {
-                var _t = i,
-                    isHas = false,
-                    item = items[i],
+                var item = items[i],
                     before = i - 1,
-                    after = i + 1;
+                    after = i + 1,
+                    _item = [];
 
                 if(item === '^') {
                     if(items[after] === '-') {
                         after = after + 1;
+                    }else if(/^\(.+\)$/.test(items[before]) && items[before - 1] && /[a-z]+/.test(items[before - 1]) ) {
+                        _items = items.splice(before - 1, 2, [items[before - 1], items[before]].join(''));
+                        i -= 1;
+                        before -= 1;
+                        after -= 1;
                     }
-                    var _items = items.splice(i + 1, after - i);
+                    _items = items.splice(i + 1, after - i);
                     items.splice(i - 1, 2, ['Math.pow', '(', items[before], ',', _items.join(''), ')'].join('') );
                     i -= 2;
                 }
@@ -197,6 +210,9 @@
                 var before = 0;
                 for(var i = 0, ilen = items.length; i < ilen; i++) {
                     var item = items[i];
+
+                    item = items[i] = MathFun.math[item] ? ('ZCharts.math.math.' + item) : item;
+
                     if(item === '(') {
                         before = i;
                     }else if(item === ')') {
@@ -232,6 +248,7 @@
 
             value = value
             .replace(/\s+/g, '')
+            .replace('log2', 'log').replace('log10', 'lg')
             // 2sin(2x) => 2*sin(2*x)
             .replace(/([0-9]+)([a-z]|[A-Z]|\()/ig, "$1*$2")
             // sin(x)2 => sin(x)*2
@@ -261,16 +278,14 @@
 
                 items = me.parserBracket(items);
 
-                items = items.map(function(item) {
-                    item = item.replace(/^\s+.+\s+$/, '');
-                    item = MathFun.math[item] ? ('ZCharts.math.math.' + item) : item;
-                    return item;
+                items = items.filter(function(item) {
+                    return !!item;
                 });
 
                 series.push({
                     javascript: items.join(''),
                     selected: index == 0,
-                    legend: value.replace(/\s*/g, '')
+                    legend: value.replace(/\s*/g, '').replace('log', 'log2').replace('lg', 'log10').replace(/pi/i, '\u03c0')
                 });
             });
 
@@ -344,7 +359,6 @@
          */
         createElement: function(ele, attr) {
             var ele = document.createElementNS('http://www.w3.org/2000/svg', ele);
-
             if(attr) {
                 this.setAttr(ele, attr);
             }
@@ -397,21 +411,26 @@
                     javascript = item.javascript,
                     legend = item.legend;
 
-                !isExp && (isExp = /x\^(?:[2-9]|[1-9]\d+)/.test(legend));
+                !isExp && (isExp = /(?:x|y|z)\^(?:[2-9]|[1-9]\d+|\()/.test(legend));
                 eval('item.__callback = function(x) {return '+ javascript +'}');
 
-                for(var x = xmin; x <= xmax; x += 0.2) {
+                for(var x = xmin; x <= xmax; x += 0.01) {
                     var y = item.__callback(x);
                     isFinite(y) && arr.push(y);
                 }
-
                 _ymin = Math.min(_ymin, Math.min.apply(Math, arr));
                 _ymax = Math.max(_ymax, Math.max.apply(Math, arr));
             });
 
-            if(isExp) {
-                yAxis.min = _ymin;
-                yAxis.max = _ymax;
+
+
+
+            if(_ymin == _ymax && _ymax == 0) {
+                xAxis.min = -1.3;
+                xAxis.max = 1.3;
+            }else if(isExp) {
+                yAxis.min = _ymin == 0 ? (0-_ymax) * 2 / 3 : _ymin;
+                yAxis.max = _ymax < Math.abs(_ymin) ? Math.abs(_ymin) : _ymax;
             }
 
             delete me.__callback;
@@ -490,6 +509,9 @@
             }
 
             y = (1 - (0 - ymin) / (ymax - ymin)) * yAxis.height - height;
+
+            if(isNaN(y) || !isFinite(y)) return;
+
             if(y <= 0) {
                 y = 0;
                 ty = y + 18;
@@ -537,6 +559,7 @@
                         if(jump % 5 == 0) {
                             // scale
                             x1 = x2 = (i - min) / (max - min) * item.width - width;
+                     
                             y1 = y - scale_2;
                             y2 = y + scale_2;
 
@@ -558,6 +581,7 @@
                 }else {
                     rectx = x;
                     recty = 0 - height;
+
                     for(var i = Math.ceil(min / step) * step; i <= max; i += step / 5) {
                         sx1 = x - shortScale_2;
                         sx2 = x + shortScale_2;
@@ -568,6 +592,7 @@
                             // scale
                             x1 = x - scale_2;
                             x2 = x + scale_2;
+
                             y1 = y2 = gy1 = gy2 = (1 - (i - min) / (max - min)) * item.height - height;
                             scales.push('M' + x1 + ',' + y1 + ' L' + x2 + ',' + y2);
 
@@ -577,7 +602,6 @@
                                 gy1 = gy2 = y1;
                                 grids.push('M' + gx1 + ',' + gy1 + ' L' + gx2 + ',' + gy2);
                             }
-
                             // text
                             text = Math.abs(i) >= Math.pow(10, 4) ? me.formatText(i) : textFormat(i);
                             ele = me.createElement('text');
@@ -695,7 +719,7 @@
                             path.push('M')
                         }
                     }else {
-                        continue;
+                        py = y > 0 ? (0 - gHeight * 2 / 3) : gHeight;
                     }
 
                     if(isNaN(py)) continue;
@@ -734,7 +758,7 @@
                 len = len || 9,
                 tmp = tmp || 4,
                 sup = '',
-                int = parseInt(val),
+                int = Number(val),
                 int = Math.abs(int),
                 log10 = Math.log10 || function(x) {
                     return Math.log(x) * Math.LOG10E;
@@ -811,8 +835,8 @@
                 cx: offsetX,
                 cy: isFinite(py) ? py : 0
             }))
-            me.$valbox.find('.xvalue').html(me.formatText(x))
-            me.$valbox.find('.yvalue').html(me.formatText(y))
+            me.$valbox.find('.xvalue').html('x= ' + me.formatText(x))
+            me.$valbox.find('.yvalue').html('y=' + me.formatText(y))
         },
 
         /**

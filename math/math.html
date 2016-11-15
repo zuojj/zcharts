@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="math.css">
 </head>
 <body>
+    <!--[if !(lte IE 8)]><!-->
     <div class="zcharts-math" id="svgMath">
         <div class="zcharts-math-header">
             函数<span class="zcharts-math-legend"></span>
@@ -24,7 +25,8 @@
                 <div class="arrow-down"><i></i></div>
             </div>
             <div class="zcharts-math-valbox">
-                <span>x= <em class="xvalue">0</em></span><span>y= <em class="yvalue">0</em></span>
+                <span class="xvalue">x= 0</span>
+                <span class="yvalue">y= 0</span>
             </div>
             <svg width="100%" height="100%"></svg>
         </div>
@@ -35,6 +37,13 @@
     <script type="text/javascript">
     (function() {
         var demos = [
+            'x^(10^(10^10))',
+            'log2(x)',
+            'ln(x)',
+            'log10(x)',
+            'log(3x^2-2x)*x',
+            'PI*log2(x)',
+
             'sin(x)',
             'cos(x)',
             'tan(x)',
@@ -57,22 +66,49 @@
             'acoth(x)',
             'asech(x)',
             'acsch(x)',
-            'ln(x)',
-            'lg(x)',
-            'log(x)',
-            '1/x',
+            'arcsin(x)',
+            'arccos(x)',
+            'arctan(x)',
+            'arccot(x)',
+            'arcsec(x)',
+            'arccsc(x)',
+            '2arcsin(x)^2',
+            'arccsc(x^2-1)',
+            'arccot(x+1)',
+            'sin(x)cos(x)',
+            'sin(x)*cos(x)',
+            'sin(x)/cos(x)',
+            'sin(-2x)',
+            'cos(PI*x/5)(x^2-1)(x^3-2x)',
+            '-2arctan(x)^2+sin(x^2)^3+1',
+
             'e^x',
+            'exp(x^2)',
             'exp(x)',
+            'abs(x)',
+            '1/x',
+            '-x^2',
+            'x^-1',
+            '(x/2)^2',
+
+            '3^x',
             'x^3',
             'x^7',
             'x^8',
+            'x^20',
             'x^8 + 40',
+            'sqrt(x)',
+
+            'x^(2^(3^4))',
+            'x^(2^3)^4',
+
             'sin(x),cos(x)',
+            '2x^(1/2)+(-1/2)*x^100+1',
+            'x^(arccsc(x^2-1))+2',
+            '(x^2-1)(x^3-2x)(x^2-1)/(x^3-2x)',
             'x^7,sin(x)',
             'sin(x), x^8',
-            'x^2^3',
-            'x^(2^3)^4',
-            'x^20',
+            'tan(abs(x)),x^(1/2)',
             'sin(x),e^x,2cos(x),x^6+40'
         ];
 
@@ -88,10 +124,14 @@
                     clearTimeout(timeout);
                     timeout = null;
                 }
-                setTimeout(test, 2000);
+                setTimeout(test, 1000);
             };
         test();
     })();
     </script>
+    <!--<![endif]-->
+    <!--[if lte IE 8]>
+        <div style="color: red">Only support IE 9 and greater and modern browsers</div>
+    <![endif]-->
 </body>
 </html>
